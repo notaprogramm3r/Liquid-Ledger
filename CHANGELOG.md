@@ -7,6 +7,24 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.32 — 2026-10-02
+
+- **Fixed misaligned input boxes on the New Entry form**, most noticeably
+  pH sitting further right/narrower than everything else. Root cause: a
+  flexbox quirk where a short, single-word label (like "pH") and a longer
+  multi-word label (like "Free Chlorine (ppm)") were allowed to claim
+  different amounts of row width depending on their text, instead of every
+  row splitting label/input space the same way. Every field box now lines
+  up in one straight column regardless of label length or screen size.
+- **Settings and Backup swapped places** in the tab bar — Settings now
+  comes right after Pool Logs, before Backup.
+- **Broadened the file type accepted by "Import JSON"** on the Manual
+  backup/transfer card. Some Android file pickers (especially when
+  browsing a cloud-storage source like Dropbox) report a `.json` file
+  under a MIME type that didn't match what the button was looking for,
+  making the file appear but not be selectable. It now accepts the `.json`
+  extension directly as well, which should fix that.
+
 ## Alpha 1.31 — 2026-10-02
 
 - **Fixed Dropbox/OneDrive linking being flaky on phones.** The

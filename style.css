@@ -270,11 +270,20 @@ main { max-width: 1100px; margin: 0 auto; padding: 20px; }
   gap: 12px;
   margin-bottom: 10px;
 }
-.field-row label { flex: 1; font-size: 0.92rem; }
+/* flex:1 alone leaves each item's shrink floor at its own CONTENT's natural
+   minimum width (a flex item's default min-width is "auto", not 0) — a
+   label that's a short unbreakable word (like "pH") can't shrink nearly as
+   far as a multi-word label (like "Free Chlorine (ppm)", which wraps and
+   shrinks down to its longest single word), so the two ended up split
+   unevenly row to row and the input boxes didn't line up. min-width: 0
+   removes that content-based floor so every row's label/input is sized by
+   the flex-basis percentages alone. */
+.field-row label { flex: 0 1 46%; min-width: 0; font-size: 0.92rem; }
 .field-row input[type="number"],
 .field-row input[type="text"],
 .field-row select {
-  flex: 1;
+  flex: 1 1 54%;
+  min-width: 0;
   max-width: 220px;
   padding: 8px 10px;
   border: 1px solid var(--line);
