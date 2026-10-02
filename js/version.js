@@ -4,4 +4,4 @@
 // 0.01 each release — e.g. Alpha 1.2 -> Alpha 1.21 -> Alpha 1.22 -> ...
 // -> Alpha 1.30 -> Alpha 1.31, etc. A whole-number bump (Alpha 2.0, or
 // dropping "Alpha") is reserved for a first stable release.
-const APP_VERSION = 'Alpha 1.26';
+const APP_VERSION = 'Alpha 1.28';

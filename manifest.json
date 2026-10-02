@@ -1,7 +1,7 @@
 {
   "id": "/index.html",
-  "name": "Liquid Assets — Pool Edition",
-  "short_name": "Liquid Assets",
+  "name": "Liquid Ledger",
+  "short_name": "Liquid Ledger",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

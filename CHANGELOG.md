@@ -7,6 +7,31 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.28 — 2026-10-02
+
+- **Header now stays pinned to the top** of the screen as you scroll, on
+  every tab — handy on the longer pages (History, Settings, Rules).
+- **"Save changes" button added to the header**, shown only while you're
+  on the Settings tab, so you don't have to scroll to the bottom to save.
+  It's seafoam green — a different color from the yellow primary buttons
+  used elsewhere — so it reads as its own "save my settings" action rather
+  than blending in.
+- **Deleting a pool now shows a clear, styled warning** (replacing the
+  plain browser pop-up) naming the pool and exactly how many logged
+  entries will be permanently lost, with Cancel and Delete buttons.
+
+## Alpha 1.27 — 2026-10-02
+
+- **Renamed the app to Liquid Ledger** (was "Liquid Assets — Pool Edition").
+  Updated everywhere a user sees it: the header, browser tab title, the
+  installed app's name (so the home-screen icon label matches), the
+  footer, and the Rules tab disclaimer.
+- Removed the "Pool Edition" subtitle under the header logo (it used to
+  show the active pool's name there too — that's already shown in the
+  pool switcher next to it, so it was redundant).
+- The "Save to Liquid Ledger" button on the New Entry tab now just says
+  **"Save to Log"**.
+
 ## Alpha 1.26 — 2026-10-02
 
 - **New app icon** matching the tropical blue/yellow redesign — the droplet

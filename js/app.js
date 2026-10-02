@@ -19,6 +19,7 @@
         btn.classList.add('active');
         $('#tab-' + btn.dataset.tab).classList.add('active');
         if (btn.dataset.tab === 'history') renderHistory();
+        $('#btn-header-save').style.display = btn.dataset.tab === 'settings' ? '' : 'none';
       });
     });
   }
@@ -130,10 +131,6 @@
     $('#log-custom2-label').textContent = label2 || 'Custom 2';
     $('#log-custom1').closest('.field-row').style.display = label1 ? '' : 'none';
     $('#log-custom2').closest('.field-row').style.display = label2 ? '' : 'none';
-  }
-
-  function updateBrandSub() {
-    $('#brand-sub').textContent = settings.poolName || 'Pool Edition';
   }
 
   // Reads the Calculator tab's own fields (independent of the Log tab).
@@ -620,7 +617,6 @@
     $('#set-custom1-label').value = settings.customFields[0] || '';
     $('#set-custom2-label').value = settings.customFields[1] || '';
     updateLogCustomLabels();
-    updateBrandSub();
 
     renderEnabledChemsCheckboxes();
 
@@ -683,6 +679,10 @@
     msg.textContent = 'Saved ✓';
     msg.classList.add('ok');
     setTimeout(() => { msg.textContent = ''; msg.classList.remove('ok'); }, 1800);
+    const headerBtn = $('#btn-header-save');
+    const headerLabel = headerBtn.textContent;
+    headerBtn.textContent = 'Saved ✓';
+    setTimeout(() => { headerBtn.textContent = headerLabel; }, 1800);
     populateSettingsForm();
     populateDesiredDefaults();
     renderPdfColumnCheckboxes();
@@ -729,12 +729,46 @@
       STORE.setActivePool(b.dataset.id);
       loadActivePool();
     }));
-    $all('.btn-pool-delete').forEach(b => b.addEventListener('click', () => {
+    $all('.btn-pool-delete').forEach(b => b.addEventListener('click', async () => {
       const pool = pools.find(p => p.id === b.dataset.id);
-      if (!confirm(`Delete "${pool.name}" and all of its log history? This can't be undone.`)) return;
+      const logCount = STORE.getLogs(pool.id).length;
+      const entryPhrase = logCount === 1 ? '1 logged entry' : `${logCount} logged entries`;
+      const confirmed = await showConfirm(
+        'Delete this pool?',
+        `This permanently deletes "${pool.name}" and ${entryPhrase} of its history. This can't be undone — make sure you have a backup first if you might want this later.`
+      );
+      if (!confirmed) return;
       STORE.deletePool(b.dataset.id);
       loadActivePool();
     }));
+  }
+
+  // Styled Yes/Cancel modal used in place of the browser's plain confirm()
+  // for anything destructive — resolves true/false.
+  function showConfirm(title, body, confirmLabel) {
+    return new Promise(resolve => {
+      const overlay = $('#confirm-overlay');
+      $('#confirm-title').textContent = title;
+      $('#confirm-body').textContent = body;
+      $('#confirm-ok').textContent = confirmLabel || 'Delete';
+      overlay.style.display = 'flex';
+
+      function cleanup(result) {
+        overlay.style.display = 'none';
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        overlay.removeEventListener('click', onOverlay);
+        resolve(result);
+      }
+      const okBtn = $('#confirm-ok');
+      const cancelBtn = $('#confirm-cancel');
+      function onOk() { cleanup(true); }
+      function onCancel() { cleanup(false); }
+      function onOverlay(e) { if (e.target === overlay) cleanup(false); }
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+      overlay.addEventListener('click', onOverlay);
+    });
   }
 
   // Re-reads the now-active pool's settings/logs and refreshes everything
@@ -1294,6 +1328,7 @@
     });
 
     $('#btn-save-settings').addEventListener('click', saveSettingsFromForm);
+    $('#btn-header-save').addEventListener('click', saveSettingsFromForm);
 
     $('#pool-switcher').addEventListener('change', (e) => {
       STORE.setActivePool(e.target.value);
