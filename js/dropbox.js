@@ -1,22 +1,35 @@
 /*
  * Dropbox backup — client-side only, PKCE OAuth flow.
  *
- * The user registers their OWN Dropbox app (free, at
- * https://www.dropbox.com/developers/apps) and pastes the App Key into
- * Settings. Tokens are stored only in this browser's localStorage and
- * used to talk directly to Dropbox's API — this project never sees or
- * relays the data.
+ * Liquid Ledger ships with its own built-in Dropbox app (DEFAULT_APP_KEY
+ * below) so "Connect Dropbox" works for anyone with zero setup — they just
+ * log into their OWN Dropbox account, same as any app that offers "Sign in
+ * with Dropbox." The App Key below is a public client identifier, not a
+ * secret (there is no secret in this flow at all — see the PKCE note
+ * below) — it's fine for it to live in this public source file. Each
+ * person's actual data goes into a private "app folder" inside THEIR OWN
+ * Dropbox, isolated from every other person's — this key never grants
+ * access to anyone else's account or files.
+ *
+ * Advanced users can still register their OWN Dropbox app instead (free,
+ * at https://www.dropbox.com/developers/apps) and paste its App Key into
+ * the "Advanced" section in Settings — that overrides the built-in one.
+ * Tokens are stored only in this browser's localStorage and used to talk
+ * directly to Dropbox's API — this project never sees or relays the data.
  *
  * Uses the "Scoped App, PKCE, no secret" flow, which is safe for a pure
  * static/client-side app (no server needed to keep a secret).
  */
 
 const DROPBOX = (() => {
+  // Liquid Ledger's own shared Dropbox app key — see the file comment above.
+  const DEFAULT_APP_KEY = '7obpxr3in0s23qw';
   let BACKUP_FILENAME = '/liquid-ledger.json';
   const VERIFIER_KEY = 'pooltest.dropbox.verifier';
 
   function setBackupFilename(base) { BACKUP_FILENAME = '/' + base + '.json'; }
   function getBackupFilename() { return BACKUP_FILENAME; }
+  function getDefaultAppKey() { return DEFAULT_APP_KEY; }
 
   function redirectUri() {
     // Must exactly match a "Redirect URI" registered in the Dropbox app
@@ -171,5 +184,5 @@ const DROPBOX = (() => {
     settings.dropbox = { appKey: settings.dropbox.appKey, accessToken: '', refreshToken: '', expiresAt: 0 };
   }
 
-  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename, redirectUri };
+  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename, redirectUri, getDefaultAppKey };
 })();

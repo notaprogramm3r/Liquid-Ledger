@@ -390,6 +390,20 @@ button.danger:hover { filter: brightness(1.08); }
   border: 0;
 }
 
+.advanced-disclosure {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.advanced-disclosure summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.advanced-disclosure summary:hover { color: var(--teal); }
+.advanced-disclosure > *:not(summary) { margin-top: 10px; }
+
 .muted { color: var(--muted); font-size: 0.88rem; }
 .status { margin-top: 4px; }
 .status.ok { color: var(--seafoam); }

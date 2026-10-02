@@ -967,18 +967,22 @@
     }
   }
 
+  // Whichever Dropbox app key actually gets used: the person's own
+  // (pasted into the "Advanced" field), or Liquid Ledger's built-in one —
+  // so "Connect Dropbox" works immediately with zero setup by default.
+  function dbxAppKey() {
+    return (settings.dropbox.appKey || '').trim() || DROPBOX.getDefaultAppKey();
+  }
+
   async function dbxConnect() {
-    const appKey = $('#dbx-app-key').value.trim();
-    if (!appKey) return alert('Enter your Dropbox App Key first.');
-    settings.dropbox.appKey = appKey;
+    settings.dropbox.appKey = $('#dbx-app-key').value.trim(); // '' = use the built-in app
     STORE.saveSettings(settings);
-    await DROPBOX.beginAuth(appKey); // navigates away
+    await DROPBOX.beginAuth(dbxAppKey()); // navigates away
   }
 
   async function dbxHandleRedirectIfAny() {
-    if (!settings.dropbox.appKey) return;
     try {
-      const tokens = await DROPBOX.handleRedirect(settings.dropbox.appKey);
+      const tokens = await DROPBOX.handleRedirect(dbxAppKey());
       if (tokens) {
         settings.dropbox.accessToken = tokens.accessToken;
         settings.dropbox.refreshToken = tokens.refreshToken;
@@ -993,7 +997,7 @@
 
   async function dbxBackup() {
     try {
-      const token = await DROPBOX.ensureValidToken(settings.dropbox, settings.dropbox.appKey);
+      const token = await DROPBOX.ensureValidToken(settings.dropbox, dbxAppKey());
       await mergeRemoteLogsBeforeBackup(() => DROPBOX.download(token), e => NOT_FOUND_RE.test(e.message));
       await DROPBOX.upload(token, STORE.exportAll());
       settings.lastBackup.dropbox = new Date().toISOString();
@@ -1006,7 +1010,7 @@
   async function dbxRestore() {
     if (!confirm('This will merge the Dropbox backup into your local log (existing entries are kept). Continue?')) return;
     try {
-      const token = await DROPBOX.ensureValidToken(settings.dropbox, settings.dropbox.appKey);
+      const token = await DROPBOX.ensureValidToken(settings.dropbox, dbxAppKey());
       const json = await DROPBOX.download(token);
       STORE.importAll(json, 'merge');
       settings = STORE.getSettings();
@@ -1319,18 +1323,24 @@
   function manualExport() {
     downloadFile(backupJsonFilename(), STORE.exportAll(), 'application/json');
   }
-  function manualImport(file) {
+  async function manualImport(file) {
+    const confirmed = await showConfirm(
+      'Replace local data with this backup?',
+      "This loads “" + file.name + "” and makes it the only data on this device: any pool or log entry here that ISN'T in that file gets deleted, and pools that ARE in both get fully replaced by the file's copy. Make sure you have a backup of anything you'd want to keep first.",
+      'Import & replace'
+    );
+    if (!confirmed) return;
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        STORE.importAll(reader.result, 'merge');
+        STORE.importAll(reader.result, 'overwrite');
         settings = STORE.getSettings();
         logs = STORE.getLogs();
         renderHistory();
         populateSettingsForm();
         renderPdfColumnCheckboxes();
         renderPoolSwitcher();
-        alert('Import complete.');
+        alert('Import complete — local data now matches the backup file.');
       } catch (e) {
         alert('Could not import that file: ' + e.message);
       }
@@ -1479,7 +1489,9 @@
 
     $('#btn-manual-export').addEventListener('click', manualExport);
     $('#manual-import-file').addEventListener('change', (e) => {
-      if (e.target.files[0]) manualImport(e.target.files[0]);
+      const file = e.target.files[0];
+      e.target.value = ''; // allow re-picking the same file later (e.g. after Cancel)
+      if (file) manualImport(file);
     });
 
     $('#btn-localfolder-pick').addEventListener('click', localFolderPick);

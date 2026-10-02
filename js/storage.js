@@ -263,13 +263,24 @@ const STORE = (() => {
     return [];
   }
 
-  // Full import (manual "Import backup file" / the Restore buttons): merges
-  // settings AND logs for every pool in the file, adopting any pool this
-  // device doesn't already have.
+  // Full import. Three modes:
+  //  - 'merge' (the Restore from Dropbox/Google Drive/OneDrive/Local folder
+  //    buttons): folds in settings and logs for every pool in the file,
+  //    adopting any pool this device doesn't already have, but never
+  //    removes anything local — safe when a backup is shared between
+  //    several people's devices.
+  //  - 'replace': like 'merge', but each pool's own log array is replaced
+  //    outright instead of folded in (still doesn't remove whole pools).
+  //  - 'overwrite' (manual "Import backup file"): a full restore — the
+  //    device ends up with EXACTLY what's in the file. Any pool that
+  //    exists locally but isn't in the backup at all gets deleted, not
+  //    just left alone.
   function importAll(json, mode = 'merge') {
     const data = typeof json === 'string' ? JSON.parse(json) : json;
     const poolsData = normalizeBackupShape(data);
-    const existingIds = new Set(listPoolIds());
+    const originalIds = listPoolIds(); // snapshot before anything changes
+    const existingIds = new Set(originalIds);
+    const importedIds = new Set(poolsData.filter(p => p && p.id).map(p => p.id));
     poolsData.forEach(p => {
       if (!p || !p.id) return;
       if (!existingIds.has(p.id)) {
@@ -279,10 +290,21 @@ const STORE = (() => {
         saveSettings(deepMerge(getSettings(p.id), p.settings), p.id);
       }
       if (Array.isArray(p.logs)) {
-        if (mode === 'replace') saveLogs(p.logs, p.id);
+        if (mode === 'replace' || mode === 'overwrite') saveLogs(p.logs, p.id);
         else mergeLogs(p.logs, p.id);
       }
     });
+    if (mode === 'overwrite' && importedIds.size) {
+      // Run AFTER adopting the imported pools, so there's always at least
+      // one of those left for deletePool()'s "always leave one pool"
+      // safeguard to land on, and the active-pool pointer (if it was
+      // pointing at a pool we're about to remove) moves onto an imported
+      // pool instead of an unrelated leftover. Guarded on importedIds.size
+      // so an empty/garbled backup can't wipe out every local pool.
+      originalIds.forEach(id => {
+        if (!importedIds.has(id)) deletePool(id);
+      });
+    }
   }
 
   // Backup-only merge: folds in log entries (and adopts any pool this

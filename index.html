@@ -308,16 +308,10 @@
 
       <div class="grid two-col">
         <div class="card">
-          <h2>Dropbox API (alternative)</h2>
-          <p class="muted">Backs up directly to your own Dropbox account as <code>/<span id="dbx-filename-example">liquid-ledger.json</span></code>. Nothing passes through any server of ours.</p>
-          <p class="muted">When creating the app at dropbox.com/developers/apps, under "Redirect URIs" add exactly this (same on phone and computer), then paste the App Key below:</p>
-          <p class="muted"><code id="dbx-redirect-uri-hint">—</code></p>
-          <div class="field-row">
-            <label for="dbx-app-key">Your Dropbox App Key</label>
-            <input type="text" id="dbx-app-key" placeholder="paste App Key from dropbox.com/developers/apps">
-          </div>
+          <h2>Dropbox</h2>
+          <p class="muted">Backs up directly to your own Dropbox account as <code>/<span id="dbx-filename-example">liquid-ledger.json</span></code>, in a private folder only this app can see. Nothing passes through any server of ours — tap Connect, log into your own Dropbox, and you're done.</p>
           <div class="actions">
-            <button id="btn-dbx-connect">Connect Dropbox</button>
+            <button id="btn-dbx-connect" class="primary">Connect Dropbox</button>
             <button id="btn-dbx-disconnect">Disconnect</button>
           </div>
           <div class="actions">
@@ -325,6 +319,15 @@
             <button id="btn-dbx-restore">Restore from Dropbox</button>
           </div>
           <p id="dbx-status" class="status muted">Not connected.</p>
+          <details class="advanced-disclosure">
+            <summary>Advanced: use your own Dropbox app instead</summary>
+            <p class="muted">Only needed if you'd rather register your own app at dropbox.com/developers/apps instead of using Liquid Ledger's built-in one. Under "Redirect URIs" there, add exactly this (same on phone and computer):</p>
+            <p class="muted"><code id="dbx-redirect-uri-hint">—</code></p>
+            <div class="field-row">
+              <label for="dbx-app-key">Your Dropbox App Key</label>
+              <input type="text" id="dbx-app-key" placeholder="leave blank to use the built-in app">
+            </div>
+          </details>
         </div>
 
         <div class="card">

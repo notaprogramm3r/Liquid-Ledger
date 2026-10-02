@@ -7,6 +7,32 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.36 — 2026-10-02
+
+- **"Connect Dropbox" now works with zero setup.** Liquid Ledger has its
+  own built-in Dropbox app key, so tapping Connect just takes you straight
+  to Dropbox's normal login screen — no more creating a developer app or
+  pasting an App Key for every single person/device. Each person still
+  only ever connects to their OWN Dropbox account, into a private folder
+  only this app can see — nobody's data becomes visible to anyone else by
+  sharing the same app key, exactly like how any other app that offers
+  "Sign in with Dropbox" works for millions of separate accounts.
+  Advanced users who'd rather register their own Dropbox app can still do
+  that — it's tucked under "Advanced: use your own Dropbox app instead" in
+  the Dropbox card, collapsed by default.
+
+## Alpha 1.35 — 2026-10-02
+
+- **"Import backup file" now fully replaces local data instead of merging
+  it.** Picking a file makes this device end up with EXACTLY what's in
+  that file — any pool or log entry here that isn't in the file gets
+  deleted, and any pool that's in both gets completely replaced by the
+  file's copy (not folded together). A confirmation prompt explains this
+  before anything happens, since it can delete data. The "Restore from
+  Dropbox/Google Drive/OneDrive/Local folder" buttons are unchanged and
+  still merge — that's what keeps multiple people sharing one pool from
+  overwriting each other's entries.
+
 ## Alpha 1.34 — 2026-10-02
 
 - **Found the real cause of "can't select any file" on Android: Firefox.**
