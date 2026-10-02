@@ -33,13 +33,15 @@ const DROPBOX = (() => {
 
   function redirectUri() {
     // Must exactly match a "Redirect URI" registered in the Dropbox app
-    // console. Normalized so the SAME value results whether this page was
-    // reached as the bare folder URL (e.g. typed in a browser) or as
-    // "...index.html" (e.g. an installed home-screen app's start_url) —
-    // otherwise connecting works from one and silently fails from the
-    // other with a redirect_uri mismatch.
+    // console, character for character. Normalized so the SAME value
+    // results no matter how this page was reached — as the bare folder
+    // URL with or without a trailing slash (e.g. typed in a browser), or
+    // as "...index.html" (e.g. an installed home-screen app's start_url)
+    // — otherwise connecting works from one and silently fails from
+    // another with a redirect_uri mismatch. Always ends in "/".
     let path = window.location.pathname;
     if (path.endsWith('/index.html')) path = path.slice(0, -'index.html'.length);
+    if (!path.endsWith('/')) path += '/';
     return window.location.origin + path;
   }
 

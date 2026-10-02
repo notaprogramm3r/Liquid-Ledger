@@ -7,6 +7,16 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.37 — 2026-10-02
+
+- **Fixed "Invalid redirect_uri" when connecting Dropbox/OneDrive.** If the
+  page was reached without a trailing slash on the URL (e.g.
+  `.../Liquid-Ledger` instead of `.../Liquid-Ledger/`), the link the app
+  sent to Dropbox/Microsoft didn't match what's registered on their side,
+  and the connection failed before you even got to a login screen. The
+  app now always adds the trailing slash itself, so this can't drift
+  depending on how the page happened to be opened.
+
 ## Alpha 1.36 — 2026-10-02
 
 - **"Connect Dropbox" now works with zero setup.** Liquid Ledger has its

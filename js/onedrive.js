@@ -23,11 +23,13 @@ const ONEDRIVE = (() => {
 
   function redirectUri() {
     // Normalized the same way as dropbox.js — see the comment there. Keeps
-    // this identical whether opened as the bare folder URL or "...index.html"
-    // (an installed home-screen app's start_url), so connecting doesn't
-    // silently fail depending on how the page was reached.
+    // this identical whether opened as the bare folder URL (with or
+    // without a trailing slash) or "...index.html" (an installed
+    // home-screen app's start_url), so connecting doesn't silently fail
+    // depending on how the page was reached. Always ends in "/".
     let path = window.location.pathname;
     if (path.endsWith('/index.html')) path = path.slice(0, -'index.html'.length);
+    if (!path.endsWith('/')) path += '/';
     return window.location.origin + path;
   }
 
