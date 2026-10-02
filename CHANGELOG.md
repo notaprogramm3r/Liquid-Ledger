@@ -7,6 +7,23 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.33 — 2026-10-02
+
+- **Fixed "Import backup file" not letting you pick a file on Android.**
+  The button was restricted to files the browser specifically tagged as
+  JSON — but Android's own file browser (especially inside Dropbox/Google
+  Drive) often doesn't tag `.json` files that way, so they showed up
+  grayed out and un-tappable. It now accepts any file and checks the
+  content after you pick it, with a clear message if it turns out not to
+  be a valid backup file.
+- **"Local folder" now correctly disables itself on phones that technically
+  claim to support it.** A few recent Android Chrome versions report having
+  the folder-access feature even though picking a folder silently does
+  nothing when you actually try it. The app now also checks whether the
+  device is primarily touchscreen-driven and treats that as "not
+  supported" either way, showing the same clear notice as before pointing
+  to Dropbox/Google Drive/OneDrive or Manual backup/transfer instead.
+
 ## Alpha 1.32 — 2026-10-02
 
 - **Fixed misaligned input boxes on the New Entry form**, most noticeably

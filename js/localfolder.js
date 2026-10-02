@@ -24,7 +24,16 @@ const LOCALFOLDER = (() => {
   const KEY = 'backup-folder';
 
   function supported() {
-    return typeof window !== 'undefined' && 'showDirectoryPicker' in window && 'indexedDB' in window;
+    if (typeof window === 'undefined' || !('showDirectoryPicker' in window) || !('indexedDB' in window)) return false;
+    // Some mobile browsers (notably recent versions of Chrome for Android)
+    // report showDirectoryPicker as present but don't actually implement a
+    // working folder-grant flow — tapping "Choose folder" just silently
+    // does nothing, no dialog, no error. Folder access only really works on
+    // a desktop browser, so treat any primarily-touchscreen device as
+    // unsupported regardless of what feature detection alone says.
+    const isTouchPrimary = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    if (isTouchPrimary) return false;
+    return true;
   }
 
   function openDb() {
