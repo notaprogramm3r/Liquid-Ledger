@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liquid Assets — Pool Edition</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0098c9">
+<link rel="icon" href="icons/icon-192.png">
+<script>
+  // Applied before the stylesheet loads so a saved Light/Dark choice never
+  // flashes the wrong theme for a moment. "system" (or nothing saved) means
+  // no override — style.css's prefers-color-scheme media query decides.
+  (function () {
+    try {
+      var t = localStorage.getItem('pooltest.theme.v1');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+        <path class="brand-mark-body" d="M12 2.6c-.3.4-1.6 2.1-2.9 4.2C7.1 10.2 5 14 5 16.6 5 20.1 8.1 23 12 23s7-2.9 7-6.4c0-2.6-2.1-6.4-4.1-9.8C13.6 4.7 12.3 3 12 2.6Z"/>
+        <path class="brand-mark-shine" d="M8.6 16.6c0 1.8 1.5 3 3.1 3" stroke-linecap="round"/>
+      </svg>
+      <span>Liquid Assets</span><span class="brand-sub" id="brand-sub">Pool Edition</span>
+    </div>
+    <div class="pool-switcher-wrap">
+      <img id="pool-switcher-photo" class="pool-thumb" alt="" style="display:none;">
+      <select id="pool-switcher" title="Switch pool"></select>
+      <button type="button" id="btn-add-pool-quick" title="Add another pool">+ Pool</button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="log" class="tab-btn active">New Entry</button>
+      <button data-tab="history" class="tab-btn">Pool Logs</button>
+      <button data-tab="backup" class="tab-btn">Backup</button>
+      <button data-tab="settings" class="tab-btn">Settings</button>
+      <button data-tab="rules" class="tab-btn">Rules</button>
+      <button data-tab="calc" class="tab-btn">Calculator (beta)</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ===================== LIQUID LEDGER TAB ===================== -->
+    <section id="tab-log" class="tab-panel active">
+      <div class="card">
+        <h2>Liquid Ledger — log a test result</h2>
+        <p class="muted">Just records what you measured — it doesn't calculate anything. Head to the <strong>Calculator</strong> tab when you want dosing advice.</p>
+        <form id="log-form">
+          <div class="field-row">
+            <label>Date &amp; time</label>
+            <span id="log-date-display" class="timestamp-display muted"></span>
+          </div>
+          <div class="field-row" data-key="ta">
+            <label for="log-ta">Total Alkalinity (ppm)</label>
+            <input type="number" step="1" min="0" id="log-ta" placeholder="e.g. 90">
+          </div>
+          <div class="field-row" data-key="ch">
+            <label for="log-ch">Calcium Hardness (ppm)</label>
+            <input type="number" step="1" min="0" id="log-ch" placeholder="e.g. 250">
+          </div>
+          <div class="field-row" data-key="cya">
+            <label for="log-cya">Cyanuric Acid (ppm)</label>
+            <input type="number" step="1" min="0" id="log-cya" placeholder="e.g. 35">
+          </div>
+          <div class="field-row" data-key="ph">
+            <label for="log-ph">pH</label>
+            <input type="number" step="0.1" min="6" max="9" id="log-ph" placeholder="e.g. 7.2">
+          </div>
+          <div class="field-row" data-key="salt" id="log-salt-row">
+            <label for="log-salt">Salt (ppm)</label>
+            <input type="number" step="10" min="0" id="log-salt" placeholder="e.g. 3200">
+          </div>
+          <div class="field-row" data-key="fc">
+            <label for="log-fc">Free Chlorine (ppm)</label>
+            <input type="number" step="0.1" min="0" id="log-fc" placeholder="e.g. 2.0">
+          </div>
+          <div class="field-row" data-key="tc">
+            <label for="log-tc">Total Chlorine (ppm)</label>
+            <input type="number" step="0.1" min="0" id="log-tc" placeholder="e.g. 2.2">
+          </div>
+          <div class="field-row" data-key="cc">
+            <label for="log-cc">Combined Chlorine (ppm)</label>
+            <input type="number" step="0.1" min="0" id="log-cc" placeholder="auto-filled from Total − Free if left blank">
+          </div>
+          <div class="field-row" data-key="temp">
+            <label for="log-temp">Water Temperature (°F)</label>
+            <input type="number" step="1" id="log-temp" placeholder="e.g. 80">
+          </div>
+          <div class="field-row" data-key="custom1">
+            <label for="log-custom1" id="log-custom1-label">Custom 1</label>
+            <input type="number" step="any" id="log-custom1" placeholder="optional">
+          </div>
+          <div class="field-row" data-key="custom2">
+            <label for="log-custom2" id="log-custom2-label">Custom 2</label>
+            <input type="number" step="any" id="log-custom2" placeholder="optional">
+          </div>
+          <div class="field-row">
+            <label for="log-corrective">Corrective action taken</label>
+            <input type="text" id="log-corrective" placeholder="optional — e.g. added 2 lb shock">
+          </div>
+          <p id="log-corrective-hint" class="muted"></p>
+          <div class="field-row">
+            <label for="log-notes">Notes</label>
+            <input type="text" id="log-notes" placeholder="optional — weather, bathers, rain, etc.">
+          </div>
+          <div class="field-row">
+            <label for="log-initials">Initials</label>
+            <input type="text" id="log-initials" maxlength="6" placeholder="e.g. JM">
+          </div>
+
+          <div class="actions">
+            <button type="button" id="btn-log" class="primary">Save to Liquid Ledger</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================== CALCULATOR TAB ===================== -->
+    <section id="tab-calc" class="tab-panel">
+      <div class="grid two-col">
+
+        <div class="card">
+          <h2>Dosing calculator</h2>
+          <p class="muted">Work out what to add right now — doesn't touch your log. "Desired" starts at your Settings target but you can change it for a one-off calculation. Rows are in the recommended order to adjust them (top to bottom).</p>
+          <div class="actions">
+            <button type="button" id="btn-load-latest">Load latest from Liquid Ledger</button>
+            <button type="button" id="btn-reset-desired">Reset desired to targets</button>
+          </div>
+          <form id="calc-form">
+            <div class="table-wrap">
+              <table id="calc-table">
+                <thead><tr><th>Chemical</th><th>Current</th><th>Desired</th></tr></thead>
+                <tbody>
+                  <tr data-key="ta">
+                    <td><label for="in-ta">1. Total Alkalinity (ppm)</label></td>
+                    <td><input type="number" step="1" min="0" id="in-ta" placeholder="e.g. 90"></td>
+                    <td><input type="number" step="1" min="0" id="target-ta"></td>
+                  </tr>
+                  <tr data-key="ch">
+                    <td><label for="in-ch">2. Calcium Hardness (ppm)</label></td>
+                    <td><input type="number" step="1" min="0" id="in-ch" placeholder="e.g. 250"></td>
+                    <td><input type="number" step="1" min="0" id="target-ch"></td>
+                  </tr>
+                  <tr data-key="cya">
+                    <td><label for="in-cya">3. Cyanuric Acid (ppm)</label></td>
+                    <td><input type="number" step="1" min="0" id="in-cya" placeholder="e.g. 35"></td>
+                    <td><input type="number" step="1" min="0" id="target-cya"></td>
+                  </tr>
+                  <tr data-key="ph">
+                    <td><label for="in-ph">4. pH</label></td>
+                    <td><input type="number" step="0.1" min="6" max="9" id="in-ph" placeholder="e.g. 7.2"></td>
+                    <td><input type="number" step="0.1" min="6" max="9" id="target-ph"></td>
+                  </tr>
+                  <tr data-key="salt" id="salt-row">
+                    <td><label for="in-salt">5. Salt (ppm)</label></td>
+                    <td><input type="number" step="10" min="0" id="in-salt" placeholder="e.g. 3200"></td>
+                    <td><input type="number" step="10" min="0" id="target-salt"></td>
+                  </tr>
+                  <tr data-key="fc">
+                    <td><label for="in-fc">6. Free Chlorine (ppm)</label></td>
+                    <td><input type="number" step="0.1" min="0" id="in-fc" placeholder="e.g. 2.0"></td>
+                    <td><input type="number" step="0.1" min="0" id="target-fc"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="actions">
+              <button type="button" id="btn-calc" class="primary">Calculate dosing</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Recommended actions</h2>
+          <div id="results" class="results">
+            <p class="muted">Enter readings and click <strong>Calculate dosing</strong>, or load your latest logged test.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================== HISTORY TAB ===================== -->
+    <section id="tab-history" class="tab-panel">
+      <div class="card">
+        <div class="card-header-row">
+          <h2>Liquid Ledger — history</h2>
+          <div class="actions">
+            <button id="btn-export-json">Export JSON</button>
+            <button id="btn-export-csv">Export CSV</button>
+          </div>
+        </div>
+        <div class="field-row" style="max-width:320px;">
+          <label for="history-range">Chart view</label>
+          <select id="history-range">
+            <option value="daily" selected>Daily (every entry)</option>
+            <option value="weekly">Weekly (averaged)</option>
+            <option value="monthly">Monthly (averaged)</option>
+          </select>
+        </div>
+        <div id="history-charts" class="charts-row"></div>
+        <div class="table-wrap">
+          <table id="history-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Export to PDF</h2>
+        <p class="muted">Pick a date range and which columns to include, then generate a printable report — use your browser's "Save as PDF" option in the print dialog.</p>
+        <div class="field-row">
+          <label for="pdf-start">From</label>
+          <input type="date" id="pdf-start">
+        </div>
+        <div class="field-row">
+          <label for="pdf-end">To</label>
+          <input type="date" id="pdf-end">
+        </div>
+        <div id="pdf-columns" class="pdf-columns"></div>
+        <div class="actions">
+          <button type="button" id="btn-pdf-generate" class="primary">Generate PDF</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Printable report — hidden on screen, shown only when printing (see style.css) -->
+    <div id="print-report" class="print-only"></div>
+
+    <!-- ===================== BACKUP TAB ===================== -->
+    <section id="tab-backup" class="tab-panel">
+
+      <div class="card">
+        <h2>Sharing a pool with other people</h2>
+        <p class="muted">
+          To let more than one person log the same pool, have everyone
+          connect to the <strong>same</strong> backup destination below —
+          the same Dropbox/Google Drive/OneDrive account, or the same
+          synced local folder. Whoever backs up or restores gets everyone's
+          entries merged together automatically; no one's log overwrites
+          anyone else's. It's not instant like a live feed — each person
+          needs to back up after logging, and restore (or just back up
+          again) to pull in what others added — but it's enough for a
+          household or small team sharing a pool. Turning on "Auto-save
+          after every log entry" on whichever method you use makes it feel
+          close to automatic.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Local folder (recommended — no API key)</h2>
+        <p class="muted">
+          Point this at a folder your computer already syncs — your Dropbox
+          folder, Google Drive folder, OneDrive, iCloud Drive, whatever you
+          use — and the Liquid Ledger backup file gets written straight into
+          it. The sync client you already have takes it from there. No
+          Dropbox/Google app to register, no API key.
+        </p>
+        <p class="muted" id="localfolder-support-note"></p>
+        <div class="actions">
+          <button id="btn-localfolder-pick">Choose folder…</button>
+          <button id="btn-localfolder-reconnect" style="display:none;">Reconnect</button>
+          <button id="btn-localfolder-forget">Forget folder</button>
+        </div>
+        <div class="field-row">
+          <label for="localfolder-autosave">Auto-save after every log entry</label>
+          <input type="checkbox" id="localfolder-autosave">
+        </div>
+        <div class="actions">
+          <button id="btn-localfolder-backup" class="primary">Save now</button>
+          <button id="btn-localfolder-restore">Load from folder</button>
+        </div>
+        <p id="localfolder-status" class="status muted">No folder chosen.</p>
+      </div>
+
+      <div class="grid two-col">
+        <div class="card">
+          <h2>Dropbox API (alternative)</h2>
+          <p class="muted">Backs up directly to your own Dropbox account as <code>/liquid-ledger-backup.json</code>. Nothing passes through any server of ours.</p>
+          <div class="field-row">
+            <label for="dbx-app-key">Your Dropbox App Key</label>
+            <input type="text" id="dbx-app-key" placeholder="paste App Key from dropbox.com/developers/apps">
+          </div>
+          <div class="actions">
+            <button id="btn-dbx-connect">Connect Dropbox</button>
+            <button id="btn-dbx-disconnect">Disconnect</button>
+          </div>
+          <div class="actions">
+            <button id="btn-dbx-backup" class="primary">Back up now</button>
+            <button id="btn-dbx-restore">Restore from Dropbox</button>
+          </div>
+          <p id="dbx-status" class="status muted">Not connected.</p>
+        </div>
+
+        <div class="card">
+          <h2>Google Drive API (alternative)</h2>
+          <p class="muted">Backs up directly to your own Google Drive as a visible file named <code>liquid-ledger-backup.json</code>. Uses the restricted "app files only" permission.</p>
+          <div class="field-row">
+            <label for="gdrive-client-id">Your Google OAuth Client ID</label>
+            <input type="text" id="gdrive-client-id" placeholder="paste Client ID from console.cloud.google.com">
+          </div>
+          <div class="actions">
+            <button id="btn-gdrive-connect">Connect Google Drive</button>
+            <button id="btn-gdrive-disconnect">Disconnect</button>
+          </div>
+          <div class="actions">
+            <button id="btn-gdrive-backup" class="primary">Back up now</button>
+            <button id="btn-gdrive-restore">Restore from Google Drive</button>
+          </div>
+          <p id="gdrive-status" class="status muted">Not connected.</p>
+        </div>
+
+        <div class="card">
+          <h2>Microsoft OneDrive API (alternative)</h2>
+          <p class="muted">Backs up directly to your own OneDrive, in an app-only folder, as <code>liquid-ledger-backup.json</code>. Works with personal Microsoft accounts, not just work/school ones.</p>
+          <div class="field-row">
+            <label for="ms-client-id">Your Microsoft Application (client) ID</label>
+            <input type="text" id="ms-client-id" placeholder="paste from Azure Portal → App registrations">
+          </div>
+          <div class="actions">
+            <button id="btn-ms-connect">Connect OneDrive</button>
+            <button id="btn-ms-disconnect">Disconnect</button>
+          </div>
+          <div class="actions">
+            <button id="btn-ms-backup" class="primary">Back up now</button>
+            <button id="btn-ms-restore">Restore from OneDrive</button>
+          </div>
+          <p id="ms-status" class="status muted">Not connected.</p>
+        </div>
+
+        <div class="card">
+          <h2>Apple iCloud Drive</h2>
+          <p class="muted">
+            Apple doesn't offer a public API that a web app like this can use to
+            connect to iCloud Drive directly (unlike Dropbox, Google, and
+            Microsoft) — it requires a native app with special entitlements.
+            The good news: iCloud Drive already works through the
+            <strong>Local folder</strong> option above. On a Mac, just choose your
+            iCloud Drive folder there and it works exactly the same way.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Manual backup / transfer (any browser)</h2>
+        <p class="muted">Works everywhere, including Firefox/Safari where the folder option above isn't supported. Export a JSON file yourself and import it on another device — or save it straight into a synced cloud folder from the save dialog.</p>
+        <div class="actions">
+          <button id="btn-manual-export">Download backup file</button>
+          <label class="file-btn">
+            Import backup file
+            <input type="file" id="manual-import-file" accept="application/json" hidden>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SETTINGS TAB ===================== -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="card">
+        <h2>Appearance</h2>
+        <p class="muted">This display preference applies to the whole app, not just the current pool.</p>
+        <div class="field-row">
+          <label for="set-theme">Theme</label>
+          <select id="set-theme">
+            <option value="system">Match device</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Your pools</h2>
+        <p class="muted">Each pool keeps its own settings, target ranges, and Liquid Ledger history. Switch between them any time from the dropdown in the header.</p>
+        <div id="pool-list" class="pool-list"></div>
+        <div class="actions">
+          <button type="button" id="btn-add-pool" class="primary">Add another pool</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Pool</h2>
+        <div class="photo-row">
+          <span id="set-photo-preview-wrap"></span>
+          <div>
+            <label class="file-btn">
+              Choose photo
+              <input type="file" id="set-photo-file" accept="image/*" hidden>
+            </label>
+            <button type="button" id="btn-photo-remove">Remove photo</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="set-pool-name">Pool name</label>
+          <input type="text" id="set-pool-name" placeholder="e.g. Main Pool">
+        </div>
+        <div class="field-row">
+          <label for="set-pool-type">Type</label>
+          <select id="set-pool-type">
+            <option value="pool">Pool</option>
+            <option value="spa">Spa</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label for="set-environment">Environment</label>
+          <select id="set-environment">
+            <option value="outdoor">Outdoor</option>
+            <option value="indoor">Indoor</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label for="set-gallons" id="set-gallons-label">Pool volume (gallons)</label>
+          <input type="number" id="set-gallons" min="100" step="100">
+        </div>
+        <div class="field-row">
+          <label for="set-swg">Saltwater chlorine generator?</label>
+          <input type="checkbox" id="set-swg">
+        </div>
+        <div class="field-row">
+          <label for="set-fc-product">Preferred chlorine type</label>
+          <select id="set-fc-product"></select>
+        </div>
+        <div class="field-row">
+          <label for="set-default-initials">Default initials for new log entries</label>
+          <input type="text" id="set-default-initials" maxlength="6" placeholder="e.g. JM">
+        </div>
+        <div class="field-row">
+          <label for="set-custom1-label">Custom field 1 name</label>
+          <input type="text" id="set-custom1-label" placeholder="e.g. Borates">
+        </div>
+        <div class="field-row">
+          <label for="set-custom2-label">Custom field 2 name</label>
+          <input type="text" id="set-custom2-label" placeholder="e.g. Phosphates">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Which tests to track</h2>
+        <p class="muted">Hides unchecked tests from the Log, Calculator, History, and PDF export. (Salt is controlled by the saltwater generator toggle above.)</p>
+        <div id="enabled-chems" class="pdf-columns"></div>
+      </div>
+
+      <div class="card">
+        <h2>Order of tests</h2>
+        <p class="muted">Controls the order fields appear in on the Liquid Ledger log form, and in the History table, CSV/PDF columns, and charts. (The Calculator keeps its own fixed order — the recommended sequence for <em>adjusting</em> chemicals, which is a different thing from the order you <em>test</em> them in.) Includes every test, even ones currently hidden, so the order stays put if you turn one back on later.</p>
+        <div id="test-order-list" class="order-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>Target ranges (ppm, pH unitless, °F for temperature)</h2>
+        <div class="table-wrap">
+          <table id="targets-table">
+            <thead><tr><th>Chemical</th><th>Min</th><th>Ideal</th><th>Max</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn-save-settings" class="primary">Save settings</button>
+        <span id="settings-saved" class="status muted"></span>
+      </div>
+    </section>
+
+    <!-- ===================== RULES TAB ===================== -->
+    <section id="tab-rules" class="tab-panel">
+      <div class="card">
+        <h2>State &amp; county pool testing rules — what's out there</h2>
+        <p class="rules-disclaimer">
+          <strong>This page is general information, not legal advice.</strong>
+          It only matters for <strong>public/commercial pools</strong> (hotels,
+          HOA/community pools, gyms, rentals) regulated by a state or county
+          health department — a private residential pool generally isn't
+          subject to any of this. Rules vary by state, county, and even city,
+          and change over time. If you operate a regulated facility, always
+          check with your local health department / permit for the rules
+          that actually apply to you. Liquid Assets doesn't enforce or
+          certify compliance with any of these — it just lets you track
+          whatever parameters and ranges you choose.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>What's common across most jurisdictions</h2>
+        <ul>
+          <li><strong>Free chlorine (or bromine) residual and pH</strong> are tested and logged everywhere, with no exceptions found.</li>
+          <li>Many jurisdictions also require logging <strong>total chlorine</strong>, <strong>combined chlorine</strong>, <strong>total alkalinity</strong>, <strong>cyanuric acid (CYA)</strong>, <strong>calcium hardness</strong>, <strong>water temperature</strong> (especially spas), and <strong>water clarity</strong> (main drain visible).</li>
+          <li>Typical acceptable ranges: pH 7.2–7.8; free chlorine ≥1 ppm in pools (≥2–3 ppm with CYA present or in spas), generally capped at 10 ppm; combined chlorine capped around 0.2–0.4 ppm; CYA capped at 100 ppm.</li>
+          <li>Several states (e.g. Texas) <strong>prohibit cyanuric acid indoors entirely</strong> — consistent with this app's Indoor/Outdoor setting, which forces CYA off for indoor pools.</li>
+          <li>Most codes expect <strong>corrective action to be documented</strong> whenever a reading falls outside range — what was added, and the retest result — which is what the new "Corrective action taken" field on the Log tab is for.</li>
+          <li>Testing frequency varies the most: from once a day up to every 1–2 hours while the pool is open, depending on facility size/staffing and whether there's an automated chemical feeder.</li>
+          <li>Record retention requirements, where specified, commonly run 1–2 years, and inspectors generally expect records on-site or quickly producible.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>A few examples, by state</h2>
+        <div class="table-wrap">
+          <table class="rules-table">
+            <thead><tr><th>State</th><th>Testing frequency</th><th>Key ranges</th><th>Record retention</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>California</td>
+                <td>Minimum once/day; 2×/week for small (&lt;25-unit) facilities</td>
+                <td>pH 7.2–7.8; free chlorine ≥1 ppm (≥2 ppm with CYA), ≤10 ppm; spa FC ≥3 ppm; CYA &lt;100 ppm; spa temp &lt;104°F</td>
+                <td>2 years</td>
+              </tr>
+              <tr>
+                <td>Texas</td>
+                <td>Every 2 hrs while open (staffed Class A/B); 1–3×/day for smaller unstaffed facilities; CYA weekly</td>
+                <td>Chlorine 1.0–8.0 ppm (pools), 2.0–8.0 ppm (spas); pH 7.0–7.8; CYA ≤100 ppm outdoors, <strong>prohibited indoors</strong>; combined chlorine ≤0.4 ppm</td>
+                <td>On-site or producible within 5 business days</td>
+              </tr>
+              <tr>
+                <td>Rhode Island</td>
+                <td>Before opening, then every 2 hrs (manual) or every 4 hrs (automated feed)</td>
+                <td>Free chlorine 1.0–10.0 ppm (2.0–10.0 with stabilizer); combined chlorine 0–0.2 ppm; pH 7.2–7.8</td>
+                <td>Not specified in the form reviewed</td>
+              </tr>
+              <tr>
+                <td>New York</td>
+                <td>Beginning, during, and end of each swimming period</td>
+                <td>Total alkalinity 80–120 mg/L; water must be chemically balanced and clear</td>
+                <td>12 months</td>
+              </tr>
+              <tr>
+                <td>Nebraska</td>
+                <td>Disinfectant residual &amp; pH: before opening, then every 4 hrs until closing; total alkalinity, combined chlorine, and CYA: weekly</td>
+                <td>Free chlorine 2.0–10.0 ppm (pools), 3.0–10.0 ppm (spas); bromine 2.0–18 ppm (pools), 4.0–18 ppm (spas); pH 7.2–7.8; alkalinity ≥80 ppm; CYA &lt;90 ppm; combined chlorine ≤0.5 ppm</td>
+                <td>Not specified in the materials reviewed — records kept on state-provided forms</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">
+          Sources: <a href="https://www.slocounty.ca.gov/departments/health-agency/public-health/environmental-health-services/forms-documents/reference-materials/pools-and-spas-program-reference-documents/pool-chemical-monitoring-log-form-daily-testing-pl" target="_blank" rel="noopener">San Luis Obispo County, CA — Pool/Spa Daily Operation Records (CCR Title 22 §65523)</a> ·
+          <a href="https://www.dshs.texas.gov/sites/default/files/poolspa/pdf/2023%20Pool_Spa%20Checklist%20for%20Local%20Health%20Department-%2023SV.pdf" target="_blank" rel="noopener">Texas DSHS — Pool/Spa Checklist for Local Health Department</a> ·
+          <a href="https://health.ri.gov/sites/g/files/xkgbur1006/files/forms/water-quality-parameter-daily-operations-logs.pdf" target="_blank" rel="noopener">Rhode Island Dept. of Health — Water Quality Parameter Daily Operations Log</a> ·
+          <a href="https://regulations.justia.com/states/new-york/title-10/chapter-i/part-6/subpart-6-1/" target="_blank" rel="noopener">New York Codes, Rules and Regulations — Title 10, Part 6, Subpart 6-1</a> ·
+          <a href="https://regulations.justia.com/states/nebraska/health-and-human-services-system/title-178/chapter-2/section-178-2-007/" target="_blank" rel="noopener">Nebraska Administrative Code, Title 178, Chapter 2, §178-2-007</a> ·
+          <a href="https://cpo.training/pool-log-requirements/" target="_blank" rel="noopener">CPO Training — Pool Log Requirements for Public Pool Operators</a>
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Finding your own local requirements</h2>
+        <p class="muted">
+          There's no single federal rulebook — the CDC publishes a voluntary
+          <em>Model Aquatic Health Code</em> that many states borrow from, but
+          each state (and often each county) sets its own binding rules. If
+          you operate a regulated pool/spa, search
+          "<em>[your state] health department swimming pool code</em>" or
+          contact your county environmental health office directly — they
+          can tell you the exact testing frequency, parameters, ranges, and
+          retention period that apply to your facility and permit type.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span>Liquid Assets — Pool Edition. Your data stays on this device unless you connect a backup. Estimates only — always retest after dosing.</span>
+    <span class="version-tag" id="version-tag"></span>
+  </footer>
+
+</div>
+
+<script src="js/version.js"></script>
+<script src="js/chem.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/dropbox.js"></script>
+<script src="js/gdrive.js"></script>
+<script src="js/onedrive.js"></script>
+<script src="js/localfolder.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

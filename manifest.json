@@ -1,0 +1,17 @@
+{
+  "id": "/index.html",
+  "name": "Liquid Assets — Pool Edition",
+  "short_name": "Liquid Assets",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#00a7cf",
+  "theme_color": "#00a7cf",
+  "description": "Calculate pool chemical dosing and log test results, with backup to your own Dropbox or Google Drive.",
+  "categories": ["utilities", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
