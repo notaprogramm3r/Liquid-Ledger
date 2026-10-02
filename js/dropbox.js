@@ -183,7 +183,7 @@ const DROPBOX = (() => {
   }
 
   function disconnect(settings) {
-    settings.dropbox = { appKey: settings.dropbox.appKey, accessToken: '', refreshToken: '', expiresAt: 0 };
+    settings.dropbox = { appKey: settings.dropbox.appKey, accessToken: '', refreshToken: '', expiresAt: 0, autoSave: settings.dropbox.autoSave };
   }
 
   return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename, redirectUri, getDefaultAppKey };

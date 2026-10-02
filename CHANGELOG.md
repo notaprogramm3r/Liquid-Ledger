@@ -7,6 +7,22 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.38 — 2026-10-02
+
+- **Dropbox now syncs automatically, so two devices stay in sync without
+  manual "Back up now"/"Restore" taps.** A new "Auto-sync after every log
+  entry and when opening the app" checkbox on the Dropbox card (off by
+  default): when on, logging an entry automatically backs up to Dropbox
+  right away, and opening the app automatically pulls in anything another
+  device already added. Both directions reuse the existing "Back up now"
+  logic, which already downloads and merges the remote file before
+  uploading — so a phone and a PC both logging entries end up with the
+  union of both, not one overwriting the other. This is still not
+  instant/live — it syncs at the moment of logging an entry or opening the
+  app, not while the app sits open and idle in the background — but it
+  removes the need to think about backing up or restoring at all for most
+  day-to-day use.
+
 ## Alpha 1.37 — 2026-10-02
 
 - **Fixed "Invalid redirect_uri" when connecting Dropbox/OneDrive.** If the

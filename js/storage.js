@@ -58,7 +58,7 @@ const STORE = (() => {
       JSON.parse(JSON.stringify(CHEM.DEFAULT_TARGETS)),
       { custom1: { min: 0, ideal: 50, max: 100 }, custom2: { min: 0, ideal: 50, max: 100 } }
     ),
-    dropbox: { appKey: '', accessToken: '', refreshToken: '', expiresAt: 0 },
+    dropbox: { appKey: '', accessToken: '', refreshToken: '', expiresAt: 0, autoSave: false },
     google: { clientId: '', accessToken: '', expiresAt: 0 },
     microsoft: { clientId: '', accessToken: '', refreshToken: '', expiresAt: 0 },
     // The actual folder handle lives in IndexedDB (see localfolder.js) —

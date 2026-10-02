@@ -333,6 +333,15 @@
     if (settings.localFolder.connected && settings.localFolder.autoSave && LOCALFOLDER.supported()) {
       localFolderBackup({ silent: true });
     }
+
+    // Same idea for Dropbox: if connected and auto-sync is on, push this
+    // entry (and pull in anything another device already added) right
+    // away instead of waiting for a manual "Back up now" tap. dbxBackup()
+    // already does a full pull-merge-then-push cycle, so this is enough
+    // to keep two devices in sync without the user doing anything extra.
+    if (settings.dropbox.refreshToken && settings.dropbox.autoSave) {
+      dbxBackup();
+    }
   }
 
   // Non-blocking reminder, matching the "document corrective action when a
@@ -689,6 +698,7 @@
     }).join('');
 
     $('#dbx-app-key').value = settings.dropbox.appKey || '';
+    $('#dbx-autosave').checked = !!settings.dropbox.autoSave;
     $('#gdrive-client-id').value = settings.google.clientId || '';
     $('#ms-client-id').value = settings.microsoft.clientId || '';
     $('#dbx-redirect-uri-hint').textContent = DROPBOX.redirectUri();
@@ -1474,6 +1484,10 @@
     $('#btn-dbx-disconnect').addEventListener('click', dbxDisconnect);
     $('#btn-dbx-backup').addEventListener('click', dbxBackup);
     $('#btn-dbx-restore').addEventListener('click', dbxRestore);
+    $('#dbx-autosave').addEventListener('change', () => {
+      settings.dropbox.autoSave = $('#dbx-autosave').checked;
+      STORE.saveSettings(settings);
+    });
 
     $('#btn-gdrive-connect').addEventListener('click', gdriveConnect);
     $('#btn-gdrive-disconnect').addEventListener('click', gdriveDisconnect);
@@ -1505,7 +1519,16 @@
     });
     localFolderInit();
 
-    dbxHandleRedirectIfAny();
+    dbxHandleRedirectIfAny().then(() => {
+      // If Dropbox auto-sync is on, pull in anything another device added
+      // since last time, right when the app opens — not just after typing
+      // a new log entry here. Best-effort: dbxBackup() already shows any
+      // error in the Backup tab's status line, so there's nothing more to
+      // do here on failure.
+      if (settings.dropbox.refreshToken && settings.dropbox.autoSave) {
+        dbxBackup();
+      }
+    });
     msHandleRedirectIfAny();
 
     if ('serviceWorker' in navigator) {
