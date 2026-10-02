@@ -281,7 +281,7 @@
       </div>
 
       <div class="card">
-        <h2>Local folder (recommended — no API key)</h2>
+        <h2>Local folder (recommended on desktop — no API key)</h2>
         <p class="muted">
           Point this at a folder your computer already syncs — your Dropbox
           folder, Google Drive folder, OneDrive, iCloud Drive, whatever you
@@ -289,7 +289,7 @@
           it. The sync client you already have takes it from there. No
           Dropbox/Google app to register, no API key.
         </p>
-        <p class="muted" id="localfolder-support-note"></p>
+        <p class="callout" id="localfolder-support-note" style="display:none;"></p>
         <div class="actions">
           <button id="btn-localfolder-pick">Choose folder…</button>
           <button id="btn-localfolder-reconnect" style="display:none;">Reconnect</button>
@@ -310,6 +310,8 @@
         <div class="card">
           <h2>Dropbox API (alternative)</h2>
           <p class="muted">Backs up directly to your own Dropbox account as <code>/<span id="dbx-filename-example">liquid-ledger.json</span></code>. Nothing passes through any server of ours.</p>
+          <p class="muted">When creating the app at dropbox.com/developers/apps, under "Redirect URIs" add exactly this (same on phone and computer), then paste the App Key below:</p>
+          <p class="muted"><code id="dbx-redirect-uri-hint">—</code></p>
           <div class="field-row">
             <label for="dbx-app-key">Your Dropbox App Key</label>
             <input type="text" id="dbx-app-key" placeholder="paste App Key from dropbox.com/developers/apps">
@@ -346,6 +348,8 @@
         <div class="card">
           <h2>Microsoft OneDrive API (alternative)</h2>
           <p class="muted">Backs up directly to your own OneDrive, in an app-only folder, as <code id="ms-filename-example">liquid-ledger.json</code>. Works with personal Microsoft accounts, not just work/school ones.</p>
+          <p class="muted">In the Azure app registration, under "Redirect URIs" (platform: Single-page application) add exactly this (same on phone and computer):</p>
+          <p class="muted"><code id="ms-redirect-uri-hint">—</code></p>
           <div class="field-row">
             <label for="ms-client-id">Your Microsoft Application (client) ID</label>
             <input type="text" id="ms-client-id" placeholder="paste from Azure Portal → App registrations">

@@ -691,6 +691,8 @@
     $('#dbx-app-key').value = settings.dropbox.appKey || '';
     $('#gdrive-client-id').value = settings.google.clientId || '';
     $('#ms-client-id').value = settings.microsoft.clientId || '';
+    $('#dbx-redirect-uri-hint').textContent = DROPBOX.redirectUri();
+    $('#ms-redirect-uri-hint').textContent = ONEDRIVE.redirectUri();
     updateBackupStatus();
 
     renderPhotoPreview();
@@ -1140,13 +1142,15 @@
   async function localFolderInit() {
     const note = $('#localfolder-support-note');
     if (!LOCALFOLDER.supported()) {
-      note.textContent = 'Your browser doesn\'t support folder access (Chrome or Edge on desktop only). Use the API backups above or the manual export/import below instead.';
+      note.textContent = "Not available on this device. Phones and tablets (iOS and Android alike) don't support folder access from a browser — use Dropbox, Google Drive, or OneDrive below instead, or Manual backup/transfer further down.";
+      note.style.display = '';
       ['#btn-localfolder-pick', '#btn-localfolder-backup', '#btn-localfolder-restore', '#localfolder-autosave']
         .forEach(sel => $(sel).disabled = true);
       updateLocalFolderStatus(false);
       return;
     }
     note.textContent = '';
+    note.style.display = 'none';
     $('#localfolder-autosave').checked = settings.localFolder.autoSave;
     try {
       const handle = await LOCALFOLDER.loadHandle();

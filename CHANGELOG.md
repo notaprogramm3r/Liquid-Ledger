@@ -7,6 +7,31 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.31 — 2026-10-02
+
+- **Fixed Dropbox/OneDrive linking being flaky on phones.** The
+  "redirect URI" the app sends to Dropbox/Microsoft could come out
+  different depending on how the page was opened — the plain web address
+  vs. the installed home-screen icon — and a mismatch there makes the
+  provider silently reject the connection with no visible error. The app
+  now always computes the same redirect URI regardless of how it was
+  launched.
+- **Sign-in failures are no longer silent.** If Dropbox or Microsoft sends
+  back an error (most commonly because the Redirect URI typed into their
+  developer console doesn't match), the Backup tab now shows what went
+  wrong instead of just quietly staying on "Not connected."
+- **Exact Redirect URI shown in the Dropbox and OneDrive cards** — copy it
+  straight from the app into the provider's developer console instead of
+  guessing at the right value (this is the #1 cause of "nothing happens
+  when I try to connect").
+- **Clearer messaging for "Local folder."** This option only works in a
+  desktop browser (Chrome or Edge) — phones and tablets don't support it
+  at all, which is why tapping "Choose folder…" previously seemed to do
+  nothing on mobile. The card now shows a prominent notice on
+  unsupported devices pointing to Dropbox/Google Drive/OneDrive or Manual
+  backup/transfer instead, and its heading no longer says "recommended"
+  without the "on desktop" qualifier.
+
 ## Alpha 1.30 — 2026-10-02
 
 - **Full sanitizer/disinfection picker.** The old "Preferred chlorine type"

@@ -22,7 +22,13 @@ const ONEDRIVE = (() => {
   function graphFileUrl() { return `https://graph.microsoft.com/v1.0/me/drive/special/approot:/${BACKUP_FILENAME}:/content`; }
 
   function redirectUri() {
-    return window.location.origin + window.location.pathname;
+    // Normalized the same way as dropbox.js — see the comment there. Keeps
+    // this identical whether opened as the bare folder URL or "...index.html"
+    // (an installed home-screen app's start_url), so connecting doesn't
+    // silently fail depending on how the page was reached.
+    let path = window.location.pathname;
+    if (path.endsWith('/index.html')) path = path.slice(0, -'index.html'.length);
+    return window.location.origin + path;
   }
 
   function randomString(len = 64) {
@@ -58,16 +64,26 @@ const ONEDRIVE = (() => {
   async function handleRedirect(clientId) {
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
+    const error = url.searchParams.get('error');
+    const errorDesc = url.searchParams.get('error_description');
     // Dropbox and OneDrive both land back with a bare ?code=, so only the
     // caller that still has a pending verifier for ITS flow should consume
     // it — handled by app.js checking which service initiated the redirect.
-    if (!code) return null;
+    if (!code && !error) return null;
     const verifier = sessionStorage.getItem(VERIFIER_KEY);
     if (!verifier) return null; // not our redirect (e.g. Dropbox's)
     sessionStorage.removeItem(VERIFIER_KEY);
     url.searchParams.delete('code');
     url.searchParams.delete('session_state');
+    url.searchParams.delete('error');
+    url.searchParams.delete('error_description');
     window.history.replaceState({}, document.title, url.pathname + url.search);
+
+    // Microsoft sends ?error=... instead of ?code=... when something went
+    // wrong (most often a redirect URI that doesn't exactly match what's
+    // registered in the Azure app) — surface it instead of silently
+    // staying "Not connected" with no explanation.
+    if (error) throw new Error("Microsoft sign-in didn't complete: " + (errorDesc || error));
 
     const body = new URLSearchParams({
       client_id: clientId,
@@ -150,5 +166,5 @@ const ONEDRIVE = (() => {
     settings.microsoft = { clientId: settings.microsoft.clientId, accessToken: '', refreshToken: '', expiresAt: 0 };
   }
 
-  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename };
+  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename, redirectUri };
 })();

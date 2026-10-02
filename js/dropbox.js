@@ -19,8 +19,15 @@ const DROPBOX = (() => {
   function getBackupFilename() { return BACKUP_FILENAME; }
 
   function redirectUri() {
-    // Must exactly match a "Redirect URI" registered in the Dropbox app console.
-    return window.location.origin + window.location.pathname;
+    // Must exactly match a "Redirect URI" registered in the Dropbox app
+    // console. Normalized so the SAME value results whether this page was
+    // reached as the bare folder URL (e.g. typed in a browser) or as
+    // "...index.html" (e.g. an installed home-screen app's start_url) —
+    // otherwise connecting works from one and silently fails from the
+    // other with a redirect_uri mismatch.
+    let path = window.location.pathname;
+    if (path.endsWith('/index.html')) path = path.slice(0, -'index.html'.length);
+    return window.location.origin + path;
   }
 
   function randomString(len = 64) {
@@ -60,13 +67,23 @@ const DROPBOX = (() => {
   async function handleRedirect(appKey) {
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
-    if (!code) return null;
+    const error = url.searchParams.get('error');
+    const errorDesc = url.searchParams.get('error_description');
+    if (!code && !error) return null;
     const verifier = sessionStorage.getItem(VERIFIER_KEY);
     if (!verifier) return null; // not our redirect
     sessionStorage.removeItem(VERIFIER_KEY);
     url.searchParams.delete('code');
     url.searchParams.delete('state');
+    url.searchParams.delete('error');
+    url.searchParams.delete('error_description');
     window.history.replaceState({}, document.title, url.pathname + url.search);
+
+    // Dropbox sends ?error=... instead of ?code=... when something went
+    // wrong (most often a redirect_uri that doesn't exactly match what's
+    // registered in the app console) — surface it instead of silently
+    // staying "Not connected" with no explanation.
+    if (error) throw new Error("Dropbox sign-in didn't complete: " + (errorDesc || error));
 
     const body = new URLSearchParams({
       code,
@@ -154,5 +171,5 @@ const DROPBOX = (() => {
     settings.dropbox = { appKey: settings.dropbox.appKey, accessToken: '', refreshToken: '', expiresAt: 0 };
   }
 
-  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename };
+  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename, redirectUri };
 })();

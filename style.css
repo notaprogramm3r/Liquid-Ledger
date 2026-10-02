@@ -528,6 +528,18 @@ code {
   font-size: 0.88rem;
 }
 
+/* ---- Reusable attention callout (e.g. a backup method unsupported here) ---- */
+.callout {
+  border-left: 4px solid var(--amber);
+  background: var(--amber-tint);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 10px 0;
+}
+
 @media print {
   body * { visibility: hidden; }
   #print-report, #print-report * { visibility: visible; }
