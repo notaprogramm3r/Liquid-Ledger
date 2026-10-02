@@ -23,7 +23,9 @@ const CHEM = (() => {
     salt: { min: 2700,max: 3400,ideal: 3200}, // ppm (only if SWG enabled)
     temp: { min: 78,  max: 84,  ideal: 80  }, // °F, comfort range — not dosed, just tracked
     tc:   { min: 1,   max: 10,  ideal: 3   }, // ppm total chlorine — not dosed directly (it's FC + combined); tracked so combined can be derived/checked
-    cc:   { min: 0,   max: 0.2, ideal: 0   }  // ppm combined chlorine (chloramines) — above ~0.2-0.5 ppm means it's time to shock; not dosed, just tracked
+    cc:   { min: 0,   max: 0.2, ideal: 0   }, // ppm combined chlorine (chloramines) — above ~0.2-0.5 ppm means it's time to shock; not dosed, just tracked
+    br:   { min: 3,   max: 5,   ideal: 4   }, // ppm bromine — typical spa/pool range for bromine used as the primary sanitizer instead of chlorine; not dosed here, just tracked
+    orp:  { min: 650, max: 750, ideal: 700 }  // mV oxidation-reduction potential — a sanitizer-independent read on disinfecting power; not dosed, just tracked
   };
 
   const per10k = (gallons) => gallons / 10000;
@@ -36,6 +38,19 @@ const CHEM = (() => {
     calhypo65: { label: 'Cal-Hypo (65%)',                unit: 'oz wt', perPpmPer10k: 2.0 },
     dichlor56: { label: 'Dichlor (56%) granular',        unit: 'oz wt', perPpmPer10k: 2.4 },
     trichlor90:{ label: 'Trichlor (90%) pucks/granular', unit: 'oz wt', perPpmPer10k: 1.6 }
+  };
+
+  // ---------- BROMINE ----------
+  // Bromine isn't dosed by a formula here (feeders/floaters are set-and-
+  // check, not a one-time addition like liquid chlorine) — this list just
+  // names the common ways people run bromine, for the sanitizer-type
+  // picker in Settings, which in turn decides whether Bromine or Chlorine
+  // testing (or both) shows up on the Log form.
+  const BR_PRODUCTS = {
+    brtabs:    { label: 'Bromine Tablets (BCDMH) + Feeder' },
+    brtwopart: { label: 'Two-Part Bromine (Sodium Bromide + Oxidizer/Shock)' },
+    brliquid:  { label: 'Liquid Bromine Concentrate' },
+    brstick:   { label: 'Bromine Sticks/Cartridge (floating dispenser)' }
   };
 
   function doseFC(gallons, current, target, product) {
@@ -217,6 +232,7 @@ const CHEM = (() => {
   return {
     DEFAULT_TARGETS,
     FC_RAISERS,
+    BR_PRODUCTS,
     doseFC,
     dosePH,
     doseTA,

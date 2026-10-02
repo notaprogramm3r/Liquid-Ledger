@@ -29,6 +29,13 @@ const STORE = (() => {
     gallons: 15000,
     hasSWG: false,
     fcProduct: 'liquid125',
+    // Preferred sanitizer/disinfection method. One of the CHEM.FC_RAISERS
+    // keys (chlorine), one of the CHEM.BR_PRODUCTS keys (bromine), or
+    // 'other' (paired with sanitizerOther, a free-text name) for anything
+    // not on the list — picking 'other' shows BOTH Chlorine and Bromine
+    // testing, since the app can't know which applies.
+    sanitizerType: 'liquid125',
+    sanitizerOther: '',
     defaultInitials: '',
     poolName: '',
     environment: 'outdoor', // 'outdoor' | 'indoor' — indoor forces CYA off
@@ -36,7 +43,7 @@ const STORE = (() => {
     photo: null,            // data URL (resized/compressed client-side), or null
     // Which tests show up in the Log/Calculator/History/PDF. Salt's
     // visibility is controlled by hasSWG instead, not listed here.
-    enabledChems: { ta: true, ch: true, cya: true, ph: true, fc: true, temp: false, tc: false, cc: false },
+    enabledChems: { ta: true, ch: true, cya: true, ph: true, fc: true, temp: false, tc: false, cc: false, br: false, orp: false },
     // Two optional numeric fields the person can name themselves (e.g.
     // "Borates", "Phosphates"). Shown whenever a label is set, and get
     // their own target range in settings.targets.custom1 / .custom2.
@@ -46,7 +53,7 @@ const STORE = (() => {
     // reads), then the rest of the chlorine family, then everything else.
     // User-editable in Settings; the Calculator keeps its own separate,
     // fixed recommended adjustment order regardless of this list.
-    testOrder: ['fc', 'ph', 'tc', 'cc', 'ta', 'ch', 'cya', 'salt', 'temp', 'custom1', 'custom2'],
+    testOrder: ['fc', 'ph', 'tc', 'cc', 'br', 'orp', 'ta', 'ch', 'cya', 'salt', 'temp', 'custom1', 'custom2'],
     targets: Object.assign(
       JSON.parse(JSON.stringify(CHEM.DEFAULT_TARGETS)),
       { custom1: { min: 0, ideal: 50, max: 100 }, custom2: { min: 0, ideal: 50, max: 100 } }

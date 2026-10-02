@@ -11,8 +11,11 @@
  */
 
 const GDRIVE = (() => {
-  const BACKUP_FILENAME = 'liquid-ledger-backup.json';
+  let BACKUP_FILENAME = 'liquid-ledger.json';
   const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+
+  function setBackupFilename(base) { BACKUP_FILENAME = base + '.json'; }
+  function getBackupFilename() { return BACKUP_FILENAME; }
   let tokenClient = null;
   let gisLoaded = false;
 
@@ -133,5 +136,5 @@ const GDRIVE = (() => {
     settings.google = { clientId: settings.google.clientId, accessToken: '', expiresAt: 0 };
   }
 
-  return { connect, ensureValidToken, upload, download, disconnect, BACKUP_FILENAME };
+  return { connect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename };
 })();

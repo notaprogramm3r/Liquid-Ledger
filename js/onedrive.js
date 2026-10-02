@@ -6,17 +6,20 @@
  * personal Microsoft accounts too, not just work/school ones) and pastes
  * the Application (client) ID into Settings. We request only
  * `Files.ReadWrite.AppFolder`, which limits this app to its own special
- * "Apps/Liquid Assets" folder inside the user's OneDrive — not their
+ * "Apps/Liquid Ledger" folder inside the user's OneDrive — not their
  * whole Drive — via the Microsoft Graph API's "approot" shortcut.
  */
 
 const ONEDRIVE = (() => {
-  const BACKUP_FILENAME = 'liquid-ledger-backup.json';
+  let BACKUP_FILENAME = 'liquid-ledger.json';
   const SCOPES = 'offline_access Files.ReadWrite.AppFolder';
   const AUTH_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize';
   const TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
-  const GRAPH_FILE_URL = `https://graph.microsoft.com/v1.0/me/drive/special/approot:/${BACKUP_FILENAME}:/content`;
   const VERIFIER_KEY = 'pooltest.onedrive.verifier';
+
+  function setBackupFilename(base) { BACKUP_FILENAME = base + '.json'; }
+  function getBackupFilename() { return BACKUP_FILENAME; }
+  function graphFileUrl() { return `https://graph.microsoft.com/v1.0/me/drive/special/approot:/${BACKUP_FILENAME}:/content`; }
 
   function redirectUri() {
     return window.location.origin + window.location.pathname;
@@ -122,7 +125,7 @@ const ONEDRIVE = (() => {
   }
 
   async function upload(accessToken, jsonString) {
-    const resp = await fetch(GRAPH_FILE_URL, {
+    const resp = await fetch(graphFileUrl(), {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -135,7 +138,7 @@ const ONEDRIVE = (() => {
   }
 
   async function download(accessToken) {
-    const resp = await fetch(GRAPH_FILE_URL, {
+    const resp = await fetch(graphFileUrl(), {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     if (resp.status === 404) throw new Error('No backup file found in OneDrive yet.');
@@ -147,5 +150,5 @@ const ONEDRIVE = (() => {
     settings.microsoft = { clientId: settings.microsoft.clientId, accessToken: '', refreshToken: '', expiresAt: 0 };
   }
 
-  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, BACKUP_FILENAME };
+  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename };
 })();

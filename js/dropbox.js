@@ -12,8 +12,11 @@
  */
 
 const DROPBOX = (() => {
-  const BACKUP_FILENAME = '/liquid-ledger-backup.json';
+  let BACKUP_FILENAME = '/liquid-ledger.json';
   const VERIFIER_KEY = 'pooltest.dropbox.verifier';
+
+  function setBackupFilename(base) { BACKUP_FILENAME = '/' + base + '.json'; }
+  function getBackupFilename() { return BACKUP_FILENAME; }
 
   function redirectUri() {
     // Must exactly match a "Redirect URI" registered in the Dropbox app console.
@@ -151,5 +154,5 @@ const DROPBOX = (() => {
     settings.dropbox = { appKey: settings.dropbox.appKey, accessToken: '', refreshToken: '', expiresAt: 0 };
   }
 
-  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, BACKUP_FILENAME };
+  return { beginAuth, handleRedirect, ensureValidToken, upload, download, disconnect, setBackupFilename, getBackupFilename };
 })();

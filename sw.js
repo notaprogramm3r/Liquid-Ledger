@@ -3,7 +3,7 @@
  * calculator and logbook keep working with no internet connection.
  * Backup to Dropbox/Google Drive still needs a network connection.
  */
-const CACHE_NAME = 'liquid-assets-alpha-1.28';
+const CACHE_NAME = 'liquid-assets-alpha-1.30';
 const APP_SHELL = [
   './',
   './index.html',

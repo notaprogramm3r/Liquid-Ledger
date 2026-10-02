@@ -7,6 +7,47 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.30 — 2026-10-02
+
+- **Full sanitizer/disinfection picker.** The old "Preferred chlorine type"
+  setting is now "Preferred sanitizer / disinfection type" and covers the
+  full gamut: five chlorine options (Liquid 10%/12.5%, Cal-Hypo, Dichlor,
+  Trichlor) plus four bromine options (Bromine Tablets/BCDMH, Two-Part
+  Bromine, Liquid Bromine Concentrate, Bromine Sticks/Cartridge).
+- **"Other" option for anything not listed.** Pick "Other (specify)…" and
+  type in your own sanitizer name. Since the app doesn't know what that
+  sanitizer is, it plays it safe and shows **both** Chlorine and Bromine
+  testing, so nothing gets hidden by a wrong guess — turn off whichever
+  you don't actually need under "Which tests to track."
+- Picking a sanitizer now automatically turns the matching test(s) on —
+  any chlorine option switches on Chlorine (and off Bromine), any bromine
+  option switches on Bromine (and off Free/Total/Combined Chlorine) — and
+  a short hint under the dropdown explains what just changed. This is a
+  starting point, not a lock: the checkboxes below stay fully editable.
+
+## Alpha 1.29 — 2026-10-02
+
+- **Bromine and ORP added as testing options.** Two new opt-in tests
+  (Settings → "Which tests to track"), each with their own target range
+  (Bromine 3–5 ppm, ORP 650–750 mV by default, both adjustable). Like
+  Total/Combined Chlorine and Water Temperature, these are log-only —
+  tracked on the Log form, History table/charts, CSV, and PDF export, but
+  not part of the Calculator's dosing math.
+- **Pool photos are more prominent.** Bigger, with a subtle border and
+  shadow, everywhere they already appeared (header switcher, "Your pools"
+  list, the upload preview in Settings) — and the active pool's photo and
+  name now show at the top of the New Entry tab, the screen you see most.
+- **Customizable backup/export file name.** New "Backup & export file
+  name" setting at the top of the Backup tab — applies to every backup
+  method (local folder, Dropbox, Google Drive, OneDrive, manual
+  export/import) plus the Export JSON/CSV buttons on Pool Logs. Defaults
+  to `liquid-ledger`, so files save as `liquid-ledger.json` /
+  `liquid-ledger.csv` unless changed. **Note for existing backups:** cloud
+  and local-folder backups previously saved as `liquid-ledger-backup.json`
+  — this version looks for `liquid-ledger.json` instead. Do one fresh
+  "Back up now" on each connected method to create the new file (your old
+  backup file is left in place, untouched).
+
 ## Alpha 1.28 — 2026-10-02
 
 - **Header now stays pinned to the top** of the screen as you scroll, on

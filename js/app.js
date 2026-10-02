@@ -35,11 +35,12 @@
   // Calculator (combined chlorine is a diagnostic value, derived from
   // Total − Free, not something you add directly; temperature isn't
   // chemically dosed either).
-  const EXTRA_LOG_FIELDS = ['tc', 'cc', 'temp'];
+  const EXTRA_LOG_FIELDS = ['tc', 'cc', 'temp', 'br', 'orp'];
   const CHEM_LABELS = {
     fc: 'Free Chlorine', ph: 'pH', ta: 'Total Alkalinity', cya: 'Cyanuric Acid',
     ch: 'Calcium Hardness', salt: 'Salt', temp: 'Water Temperature',
-    tc: 'Total Chlorine', cc: 'Combined Chlorine'
+    tc: 'Total Chlorine', cc: 'Combined Chlorine',
+    br: 'Bromine', orp: 'ORP'
   };
   const CHEM_ORDER_NUM = { ta: 1, ch: 2, cya: 3, ph: 4, salt: 5, fc: 6 };
 
@@ -55,6 +56,46 @@
     return settings.enabledChems[key] !== false;
   }
 
+  // Which family of sanitizer a settings.sanitizerType value belongs to —
+  // drives which test fields (Chlorine vs. Bromine) get switched on by
+  // default when the person picks a sanitizer in Settings.
+  function sanitizerFamily(type) {
+    if (CHEM.FC_RAISERS[type]) return 'chlorine';
+    if (CHEM.BR_PRODUCTS[type]) return 'bromine';
+    return 'other';
+  }
+
+  // Applies sensible "which tests to track" defaults for a newly chosen
+  // sanitizer type. Doesn't touch fields the sanitizer type has no opinion
+  // about (Total/Combined Chlorine stay off for bromine, but ORP and Water
+  // Temperature are left alone either way) — and the checkboxes in
+  // Settings stay fully editable afterward, this just sets a starting point.
+  function applySanitizerDefaults(type) {
+    const family = sanitizerFamily(type);
+    if (family === 'chlorine') {
+      settings.fcProduct = type;
+      settings.enabledChems.fc = true;
+      settings.enabledChems.br = false;
+    } else if (family === 'bromine') {
+      settings.enabledChems.br = true;
+      settings.enabledChems.fc = false;
+      settings.enabledChems.tc = false;
+      settings.enabledChems.cc = false;
+    } else {
+      // Unknown/custom sanitizer — show both Chlorine and Bromine testing
+      // rather than guess which one applies.
+      settings.enabledChems.fc = true;
+      settings.enabledChems.br = true;
+    }
+  }
+
+  function sanitizerHintText(type) {
+    const family = sanitizerFamily(type);
+    if (family === 'chlorine') return 'Chlorine testing (Free/Total/Combined) is available below. Bromine is hidden.';
+    if (family === 'bromine') return 'Bromine testing is available below. Chlorine is hidden.';
+    return "Since we don't know this sanitizer, both Chlorine and Bromine testing are available below — turn off whichever you don't need.";
+  }
+
   // Display label for any field key, including the two nameable custom
   // fields (which aren't in CHEM_LABELS since their name is user-chosen).
   function fieldLabel(key) {
@@ -66,7 +107,7 @@
   // Every field that can appear on the Log form, in a user-chosen order
   // (Settings → "Order of tests"). Defaults to FC/pH first, then the rest
   // of the chlorine family, then everything else — see storage.js.
-  const ALL_ORDERABLE_KEYS = ['fc', 'ph', 'tc', 'cc', 'ta', 'ch', 'cya', 'salt', 'temp', 'custom1', 'custom2'];
+  const ALL_ORDERABLE_KEYS = ['fc', 'ph', 'tc', 'cc', 'br', 'orp', 'ta', 'ch', 'cya', 'salt', 'temp', 'custom1', 'custom2'];
 
   // Whether a key counts as "currently tracked" — enabled chemicals/extras
   // via the usual rules, custom fields via having a name set.
@@ -174,6 +215,8 @@
     vals.temp = parseFloat($('#log-temp').value);
     vals.tc = parseFloat($('#log-tc').value);
     vals.cc = parseFloat($('#log-cc').value);
+    vals.br = parseFloat($('#log-br').value);
+    vals.orp = parseFloat($('#log-orp').value);
     vals.notes = $('#log-notes').value.trim();
     vals.initials = $('#log-initials').value.trim();
     vals.custom1 = parseFloat($('#log-custom1').value);
@@ -257,7 +300,8 @@
     }
 
     const hasAny = CHEM_KEYS.some(k => !isNaN(vals[k])) || !isNaN(vals.temp) ||
-      !isNaN(vals.tc) || !isNaN(vals.cc) || !isNaN(vals.custom1) || !isNaN(vals.custom2);
+      !isNaN(vals.tc) || !isNaN(vals.cc) || !isNaN(vals.br) || !isNaN(vals.orp) ||
+      !isNaN(vals.custom1) || !isNaN(vals.custom2);
     if (!hasAny) {
       alert('Enter at least one reading before logging.');
       return;
@@ -269,6 +313,7 @@
       cya: numOrNull(vals.cya), ch: numOrNull(vals.ch), salt: numOrNull(vals.salt),
       temp: numOrNull(vals.temp),
       tc: numOrNull(vals.tc), cc: numOrNull(vals.cc),
+      br: numOrNull(vals.br), orp: numOrNull(vals.orp),
       notes: vals.notes || '',
       initials: vals.initials || '',
       custom1: numOrNull(vals.custom1),
@@ -311,7 +356,7 @@
   }
 
   function clearLogForm() {
-    ['#log-fc', '#log-ph', '#log-ta', '#log-cya', '#log-ch', '#log-salt', '#log-temp', '#log-tc', '#log-cc', '#log-notes', '#log-custom1', '#log-custom2', '#log-corrective'].forEach(sel => $(sel).value = '');
+    ['#log-fc', '#log-ph', '#log-ta', '#log-cya', '#log-ch', '#log-salt', '#log-temp', '#log-tc', '#log-cc', '#log-br', '#log-orp', '#log-notes', '#log-custom1', '#log-custom2', '#log-corrective'].forEach(sel => $(sel).value = '');
     // Initials tend to stay the same across a session — refill with the
     // Settings default rather than blanking, so logging several entries
     // in a row doesn't require retyping them each time.
@@ -347,8 +392,9 @@
   // then any named custom fields, then Notes and who logged it.
   function historyColumnDefs() {
     const defs = [{ key: 'date', label: 'Date' }];
+    const UNIT_LABELS = { temp: 'Temp (°F)', br: 'Bromine (ppm)', orp: 'ORP (mV)' };
     trackedTargetKeys().forEach(k => {
-      defs.push({ key: k, label: k === 'temp' ? 'Temp (°F)' : fieldLabel(k) });
+      defs.push({ key: k, label: UNIT_LABELS[k] || fieldLabel(k) });
     });
     defs.push({ key: 'corrective', label: 'Corrective Action' });
     defs.push({ key: 'notes', label: 'Notes' });
@@ -512,7 +558,7 @@
       }));
     });
     const csv = rows.map(r => r.join(',')).join('\n');
-    downloadFile('liquid-ledger.csv', csv, 'text/csv');
+    downloadFile(backupCsvFilename(), csv, 'text/csv');
   }
 
   function downloadFile(filename, content, mime) {
@@ -609,9 +655,15 @@
     applyFieldVisibility();
     applyFieldOrder();
 
-    const sel = $('#set-fc-product');
-    sel.innerHTML = Object.entries(CHEM.FC_RAISERS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
-    sel.value = settings.fcProduct;
+    const sel = $('#set-sanitizer-type');
+    const chlorineOpts = Object.entries(CHEM.FC_RAISERS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+    const bromineOpts = Object.entries(CHEM.BR_PRODUCTS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+    sel.innerHTML = `<optgroup label="Chlorine">${chlorineOpts}</optgroup><optgroup label="Bromine">${bromineOpts}</optgroup><option value="other">Other (specify)…</option>`;
+    sel.value = settings.sanitizerType || 'liquid125';
+    const isOther = sel.value === 'other';
+    $('#set-sanitizer-other-row').style.display = isOther ? '' : 'none';
+    $('#set-sanitizer-other').value = settings.sanitizerOther || '';
+    $('#sanitizer-hint').textContent = sanitizerHintText(sel.value);
 
     $('#set-default-initials').value = settings.defaultInitials || '';
     $('#set-custom1-label').value = settings.customFields[0] || '';
@@ -653,7 +705,9 @@
     settings.hasSWG = $('#set-swg').checked;
     settings.poolType = $('#set-pool-type').value;
     settings.environment = $('#set-environment').value;
-    settings.fcProduct = $('#set-fc-product').value;
+    settings.sanitizerType = $('#set-sanitizer-type').value;
+    settings.sanitizerOther = $('#set-sanitizer-other').value.trim();
+    if (sanitizerFamily(settings.sanitizerType) === 'chlorine') settings.fcProduct = settings.sanitizerType;
     settings.defaultInitials = $('#set-default-initials').value.trim();
     settings.customFields = [$('#set-custom1-label').value.trim(), $('#set-custom2-label').value.trim()];
 
@@ -704,6 +758,17 @@
       photoImg.style.display = '';
     } else {
       photoImg.style.display = 'none';
+    }
+
+    // A bigger, more prominent version of the same photo at the top of the
+    // New Entry card — the screen people see most often.
+    const banner = $('#log-pool-banner');
+    if (active && active.photo) {
+      $('#log-pool-photo').src = active.photo;
+      $('#log-pool-name').textContent = active.name;
+      banner.style.display = '';
+    } else {
+      banner.style.display = 'none';
     }
   }
 
@@ -1163,7 +1228,7 @@
       }
     }
     try {
-      const filename = DROPBOX.BACKUP_FILENAME.replace(/^\//, '');
+      const filename = backupJsonFilename();
       await mergeRemoteLogsBeforeBackup(
         () => LOCALFOLDER.readFile(localFolderHandle, filename),
         e => e.name === 'NotFoundError'
@@ -1187,7 +1252,7 @@
       let granted = await LOCALFOLDER.hasPermission(localFolderHandle);
       if (!granted) granted = await LOCALFOLDER.requestPermission(localFolderHandle);
       if (!granted) throw new Error('Permission to read that folder was denied.');
-      const filename = DROPBOX.BACKUP_FILENAME.replace(/^\//, '');
+      const filename = backupJsonFilename();
       const json = await LOCALFOLDER.readFile(localFolderHandle, filename);
       STORE.importAll(json, 'merge');
       settings = STORE.getSettings();
@@ -1248,7 +1313,7 @@
 
   // ---------------- Manual export/import ----------------
   function manualExport() {
-    downloadFile('liquid-ledger-backup.json', STORE.exportAll(), 'application/json');
+    downloadFile(backupJsonFilename(), STORE.exportAll(), 'application/json');
   }
   function manualImport(file) {
     const reader = new FileReader();
@@ -1267,6 +1332,47 @@
       }
     };
     reader.readAsText(file);
+  }
+
+  // ---------------- Backup/export file name (app-wide, like the theme) ----------------
+  const FILENAME_KEY = 'pooltest.filenamebase.v1';
+  const DEFAULT_FILENAME_BASE = 'liquid-ledger';
+
+  function getFileBase() {
+    let saved = '';
+    try { saved = (localStorage.getItem(FILENAME_KEY) || '').trim(); } catch (e) {}
+    // Strip characters that don't belong in a filename, just in case.
+    return (saved || DEFAULT_FILENAME_BASE).replace(/[\\/:*?"<>|]/g, '').trim() || DEFAULT_FILENAME_BASE;
+  }
+  function backupJsonFilename() { return getFileBase() + '.json'; }
+  function backupCsvFilename() { return getFileBase() + '.csv'; }
+
+  function applyFilenamePref() {
+    const base = getFileBase();
+    DROPBOX.setBackupFilename(base);
+    GDRIVE.setBackupFilename(base);
+    ONEDRIVE.setBackupFilename(base);
+    $('#filename-example-json').textContent = base + '.json';
+    $('#filename-example-csv').textContent = base + '.csv';
+    $('#dbx-filename-example').textContent = base + '.json';
+    $('#gdrive-filename-example').textContent = base + '.json';
+    $('#ms-filename-example').textContent = base + '.json';
+  }
+
+  function initFilenamePref() {
+    let saved = '';
+    try { saved = localStorage.getItem(FILENAME_KEY) || ''; } catch (e) {}
+    $('#set-filename-base').value = saved;
+    applyFilenamePref();
+    $('#set-filename-base').addEventListener('change', () => {
+      const value = $('#set-filename-base').value.trim();
+      try {
+        if (value) localStorage.setItem(FILENAME_KEY, value);
+        else localStorage.removeItem(FILENAME_KEY);
+      } catch (e) {}
+      $('#set-filename-base').value = value;
+      applyFilenamePref();
+    });
   }
 
   // ---------------- Wire up ----------------
@@ -1294,6 +1400,7 @@
 
   function init() {
     initTheme();
+    initFilenamePref();
     initTabs();
     populateSettingsForm();
     populateDesiredDefaults();
@@ -1308,7 +1415,7 @@
     $('#btn-log').addEventListener('click', handleLog);
     $('#btn-load-latest').addEventListener('click', loadLatestIntoCalculator);
     $('#btn-reset-desired').addEventListener('click', populateDesiredDefaults);
-    $('#btn-export-json').addEventListener('click', () => downloadFile('liquid-ledger-backup.json', STORE.exportAll(), 'application/json'));
+    $('#btn-export-json').addEventListener('click', () => downloadFile(backupJsonFilename(), STORE.exportAll(), 'application/json'));
     $('#btn-export-csv').addEventListener('click', exportCsv);
     $('#btn-pdf-generate').addEventListener('click', generatePdf);
     $('#set-swg').addEventListener('change', () => {
@@ -1325,6 +1432,14 @@
     $('#set-pool-type').addEventListener('change', () => {
       settings.poolType = $('#set-pool-type').value;
       $('#set-gallons-label').textContent = settings.poolType === 'spa' ? 'Spa volume (gallons)' : 'Pool volume (gallons)';
+    });
+    $('#set-sanitizer-type').addEventListener('change', () => {
+      const type = $('#set-sanitizer-type').value;
+      settings.sanitizerType = type;
+      if (type !== 'other') settings.sanitizerOther = '';
+      applySanitizerDefaults(type);
+      populateSettingsForm();
+      renderPdfColumnCheckboxes();
     });
 
     $('#btn-save-settings').addEventListener('click', saveSettingsFromForm);
