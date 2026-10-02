@@ -7,6 +7,28 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.34 — 2026-10-02
+
+- **Found the real cause of "can't select any file" on Android: Firefox.**
+  Both file-picker buttons ("Import backup file" and the pool photo
+  upload) hid their actual file input using the HTML `hidden` attribute,
+  triggered by tapping a styled label next to it — a totally standard,
+  widely-used pattern. Firefox for Android, specifically, doesn't reliably
+  open the native file picker (or deliver your selection back to the page)
+  for a file input that's fully `display:none` that way. Switched to a
+  "visually hidden" technique instead (squeezed to 1 pixel and clipped,
+  rather than display:none) that keeps the input interactive in every
+  browser, including Firefox for Android, while staying invisible. This
+  was the actual blocker behind not being able to select files while
+  browsing into Dropbox or Google Drive through "Import backup file" too
+  — that flow goes through this same file input.
+- To confirm: **"Local folder" (Choose/Load from folder) is correctly
+  unavailable in Firefox** on any device, phone or desktop — Firefox has
+  never implemented that particular browser feature (it's Chrome/Edge
+  only everywhere, not just on mobile). That one isn't fixable on our end;
+  Manual backup/transfer or the Dropbox/Google Drive/OneDrive API cards
+  are the way to go in Firefox.
+
 ## Alpha 1.33 — 2026-10-02
 
 - **Fixed "Import backup file" not letting you pick a file on Android.**
