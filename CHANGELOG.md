@@ -7,6 +7,54 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.42 — 2026-10-04
+
+- **New logo: a water droplet over an open book.** Replaces the plain
+  droplet in the app header and in the home-screen/app icons (icons/icon-192.png
+  and icon-512.png).
+
+## Alpha 1.41 — 2026-10-03
+
+- **Reorganized the Backup tab to focus on what actually works today.**
+  Dropbox, Google Drive, and OneDrive direct-account sync are now tucked
+  into a collapsed "Coming soon: direct cloud-account sync" section at the
+  bottom — nothing was removed or disconnected, it's just out of the way
+  while those get sorted out (especially on phones). The main page now
+  leads with **Local folder** and **Manual backup/transfer**, which work
+  reliably today on desktop and are the recommended way to back up or
+  share a pool between devices for now.
+
+## Alpha 1.40 — 2026-10-02
+
+- **"Back up now" and "Restore from Dropbox" now always show a popup with
+  the real outcome** — "Backed up to Dropbox successfully at ..." or the
+  exact error message if it failed — instead of only updating a small
+  status line that's easy to miss or scroll past. This is specifically to
+  track down a report of Dropbox backups silently not reaching Dropbox on
+  one Android phone with no error shown anywhere.
+- **Added a last-resort error catcher.** If anything in the app throws an
+  unexpected error anywhere — even somewhere we didn't anticipate — it now
+  shows a popup with the exact error message instead of silently breaking
+  part of the app with no visible sign anything went wrong. If you see one
+  of these, please tell us exactly what it says — that's the single most
+  useful piece of information for tracking down a bug we can't reproduce
+  ourselves.
+
+## Alpha 1.39 — 2026-10-02
+
+- **Fixed the new Dropbox auto-sync checkbox not responding to taps on
+  Android.** The checkbox itself was only 19px, with dead space between
+  it and its label that belonged to neither — an easy miss on a touchscreen,
+  which looked like tapping did nothing. The whole row (label text and
+  checkbox together) is now one tap target, same fix applied to the Local
+  Folder auto-save row for consistency.
+- **Clarified where Dropbox backups actually get saved.** Liquid Ledger
+  uses Dropbox's "app folder" permission, so the backup file lives at
+  **Apps → Liquid Ledger → liquid-ledger.json** inside your Dropbox — not
+  in the main Dropbox folder. The Dropbox card's description now says this
+  explicitly, since not knowing to look there made it seem like nothing
+  was being saved at all.
+
 ## Alpha 1.38 — 2026-10-02
 
 - **Dropbox now syncs automatically, so two devices stay in sync without

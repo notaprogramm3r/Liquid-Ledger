@@ -25,9 +25,12 @@
 
   <header class="topbar">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
-        <path class="brand-mark-body" d="M12 2.6c-.3.4-1.6 2.1-2.9 4.2C7.1 10.2 5 14 5 16.6 5 20.1 8.1 23 12 23s7-2.9 7-6.4c0-2.6-2.1-6.4-4.1-9.8C13.6 4.7 12.3 3 12 2.6Z"/>
-        <path class="brand-mark-shine" d="M8.6 16.6c0 1.8 1.5 3 3.1 3" stroke-linecap="round"/>
+      <svg class="brand-mark" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false">
+        <path class="brand-mark-body" d="M12 1.8C11.8 2.1 8.3 5.6 8.3 8a3.7 3.7 0 0 0 7.4 0C15.7 5.6 12.2 2.1 12 1.8Z"/>
+        <path class="brand-mark-shine" d="M10.2 8.4c0 1 .7 1.8 1.7 2" stroke-linecap="round"/>
+        <path class="brand-mark-body" d="M11.3 20.6C9.3 19.1 5.9 18.6 2.4 19.5V12.4C5.9 11.5 9.3 12 11.3 13.5Z"/>
+        <path class="brand-mark-body" d="M12.7 20.6C14.7 19.1 18.1 18.6 21.6 19.5V12.4C18.1 11.5 14.7 12 12.7 13.5Z"/>
+        <path class="brand-mark-cover" d="M2.4 21.5C5.9 20.6 9.5 21.1 12 22.6C14.5 21.1 18.1 20.6 21.6 21.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span>Liquid Ledger</span>
     </div>
@@ -257,16 +260,16 @@
         <h2>Sharing a pool with other people</h2>
         <p class="muted">
           To let more than one person log the same pool, have everyone
-          connect to the <strong>same</strong> backup destination below —
-          the same Dropbox/Google Drive/OneDrive account, or the same
-          synced local folder. Whoever backs up or restores gets everyone's
-          entries merged together automatically; no one's log overwrites
-          anyone else's. It's not instant like a live feed — each person
-          needs to back up after logging, and restore (or just back up
-          again) to pull in what others added — but it's enough for a
-          household or small team sharing a pool. Turning on "Auto-save
-          after every log entry" on whichever method you use makes it feel
-          close to automatic.
+          connect to the <strong>same</strong> synced local folder below (a
+          Dropbox/Google Drive/OneDrive/iCloud folder your computer already
+          syncs works great for this). Whoever backs up or restores gets
+          everyone's entries merged together automatically; no one's log
+          overwrites anyone else's. It's not instant like a live feed — each
+          person needs to save after logging, and load (or just save again)
+          to pull in what others added — but it's enough for a household or
+          small team sharing a pool. Turning on "Auto-save after every log
+          entry" makes it feel close to automatic. (Direct cloud-account
+          sync for phones is in the works — see "Coming soon" below.)
         </p>
       </div>
 
@@ -295,94 +298,15 @@
           <button id="btn-localfolder-reconnect" style="display:none;">Reconnect</button>
           <button id="btn-localfolder-forget">Forget folder</button>
         </div>
-        <div class="field-row">
-          <label for="localfolder-autosave">Auto-save after every log entry</label>
+        <label class="field-row checkbox-row" for="localfolder-autosave">
+          <span>Auto-save after every log entry</span>
           <input type="checkbox" id="localfolder-autosave">
-        </div>
+        </label>
         <div class="actions">
           <button id="btn-localfolder-backup" class="primary">Save now</button>
           <button id="btn-localfolder-restore">Load from folder</button>
         </div>
         <p id="localfolder-status" class="status muted">No folder chosen.</p>
-      </div>
-
-      <div class="grid two-col">
-        <div class="card">
-          <h2>Dropbox</h2>
-          <p class="muted">Backs up directly to your own Dropbox account as <code>/<span id="dbx-filename-example">liquid-ledger.json</span></code>, in a private folder only this app can see. Nothing passes through any server of ours — tap Connect, log into your own Dropbox, and you're done.</p>
-          <div class="actions">
-            <button id="btn-dbx-connect" class="primary">Connect Dropbox</button>
-            <button id="btn-dbx-disconnect">Disconnect</button>
-          </div>
-          <div class="actions">
-            <button id="btn-dbx-backup" class="primary">Back up now</button>
-            <button id="btn-dbx-restore">Restore from Dropbox</button>
-          </div>
-          <p id="dbx-status" class="status muted">Not connected.</p>
-          <div class="field-row">
-            <label for="dbx-autosave">Auto-sync after every log entry and when opening the app</label>
-            <input type="checkbox" id="dbx-autosave">
-          </div>
-          <details class="advanced-disclosure">
-            <summary>Advanced: use your own Dropbox app instead</summary>
-            <p class="muted">Only needed if you'd rather register your own app at dropbox.com/developers/apps instead of using Liquid Ledger's built-in one. Under "Redirect URIs" there, add exactly this (same on phone and computer):</p>
-            <p class="muted"><code id="dbx-redirect-uri-hint">—</code></p>
-            <div class="field-row">
-              <label for="dbx-app-key">Your Dropbox App Key</label>
-              <input type="text" id="dbx-app-key" placeholder="leave blank to use the built-in app">
-            </div>
-          </details>
-        </div>
-
-        <div class="card">
-          <h2>Google Drive API (alternative)</h2>
-          <p class="muted">Backs up directly to your own Google Drive as a visible file named <code id="gdrive-filename-example">liquid-ledger.json</code>. Uses the restricted "app files only" permission.</p>
-          <div class="field-row">
-            <label for="gdrive-client-id">Your Google OAuth Client ID</label>
-            <input type="text" id="gdrive-client-id" placeholder="paste Client ID from console.cloud.google.com">
-          </div>
-          <div class="actions">
-            <button id="btn-gdrive-connect">Connect Google Drive</button>
-            <button id="btn-gdrive-disconnect">Disconnect</button>
-          </div>
-          <div class="actions">
-            <button id="btn-gdrive-backup" class="primary">Back up now</button>
-            <button id="btn-gdrive-restore">Restore from Google Drive</button>
-          </div>
-          <p id="gdrive-status" class="status muted">Not connected.</p>
-        </div>
-
-        <div class="card">
-          <h2>Microsoft OneDrive API (alternative)</h2>
-          <p class="muted">Backs up directly to your own OneDrive, in an app-only folder, as <code id="ms-filename-example">liquid-ledger.json</code>. Works with personal Microsoft accounts, not just work/school ones.</p>
-          <p class="muted">In the Azure app registration, under "Redirect URIs" (platform: Single-page application) add exactly this (same on phone and computer):</p>
-          <p class="muted"><code id="ms-redirect-uri-hint">—</code></p>
-          <div class="field-row">
-            <label for="ms-client-id">Your Microsoft Application (client) ID</label>
-            <input type="text" id="ms-client-id" placeholder="paste from Azure Portal → App registrations">
-          </div>
-          <div class="actions">
-            <button id="btn-ms-connect">Connect OneDrive</button>
-            <button id="btn-ms-disconnect">Disconnect</button>
-          </div>
-          <div class="actions">
-            <button id="btn-ms-backup" class="primary">Back up now</button>
-            <button id="btn-ms-restore">Restore from OneDrive</button>
-          </div>
-          <p id="ms-status" class="status muted">Not connected.</p>
-        </div>
-
-        <div class="card">
-          <h2>Apple iCloud Drive</h2>
-          <p class="muted">
-            Apple doesn't offer a public API that a web app like this can use to
-            connect to iCloud Drive directly (unlike Dropbox, Google, and
-            Microsoft) — it requires a native app with special entitlements.
-            The good news: iCloud Drive already works through the
-            <strong>Local folder</strong> option above. On a Mac, just choose your
-            iCloud Drive folder there and it works exactly the same way.
-          </p>
-        </div>
       </div>
 
       <div class="card">
@@ -396,6 +320,97 @@
           </label>
         </div>
       </div>
+
+      <details class="comingsoon-section">
+        <summary>Coming soon: direct cloud-account sync (Dropbox, Google Drive, OneDrive)</summary>
+        <p class="muted comingsoon-intro">
+          These connect straight to a Dropbox/Google/Microsoft account instead
+          of a synced folder, which would let a phone sync without needing a
+          desktop-style folder picker. They're still being worked on and
+          aren't reliable yet, especially on phones — for now, please use
+          <strong>Local folder</strong> or <strong>Manual backup</strong>
+          above instead.
+        </p>
+
+        <div class="grid two-col">
+          <div class="card">
+            <h2>Dropbox</h2>
+            <p class="muted">Backs up directly to your own Dropbox account, in a private app folder only Liquid Ledger can see — in the Dropbox app or dropbox.com, look under <strong>Apps → Liquid Ledger → <span id="dbx-filename-example">liquid-ledger.json</span></strong> (it will NOT show up in the main Dropbox folder). Nothing passes through any server of ours — tap Connect, log into your own Dropbox, and you're done.</p>
+            <div class="actions">
+              <button id="btn-dbx-connect" class="primary">Connect Dropbox</button>
+              <button id="btn-dbx-disconnect">Disconnect</button>
+            </div>
+            <div class="actions">
+              <button id="btn-dbx-backup" class="primary">Back up now</button>
+              <button id="btn-dbx-restore">Restore from Dropbox</button>
+            </div>
+            <p id="dbx-status" class="status muted">Not connected.</p>
+            <label class="field-row checkbox-row" for="dbx-autosave">
+              <span>Auto-sync after every log entry and when opening the app</span>
+              <input type="checkbox" id="dbx-autosave">
+            </label>
+            <details class="advanced-disclosure">
+              <summary>Advanced: use your own Dropbox app instead</summary>
+              <p class="muted">Only needed if you'd rather register your own app at dropbox.com/developers/apps instead of using Liquid Ledger's built-in one. Under "Redirect URIs" there, add exactly this (same on phone and computer):</p>
+              <p class="muted"><code id="dbx-redirect-uri-hint">—</code></p>
+              <div class="field-row">
+                <label for="dbx-app-key">Your Dropbox App Key</label>
+                <input type="text" id="dbx-app-key" placeholder="leave blank to use the built-in app">
+              </div>
+            </details>
+          </div>
+
+          <div class="card">
+            <h2>Google Drive API (alternative)</h2>
+            <p class="muted">Backs up directly to your own Google Drive as a visible file named <code id="gdrive-filename-example">liquid-ledger.json</code>. Uses the restricted "app files only" permission.</p>
+            <div class="field-row">
+              <label for="gdrive-client-id">Your Google OAuth Client ID</label>
+              <input type="text" id="gdrive-client-id" placeholder="paste Client ID from console.cloud.google.com">
+            </div>
+            <div class="actions">
+              <button id="btn-gdrive-connect">Connect Google Drive</button>
+              <button id="btn-gdrive-disconnect">Disconnect</button>
+            </div>
+            <div class="actions">
+              <button id="btn-gdrive-backup" class="primary">Back up now</button>
+              <button id="btn-gdrive-restore">Restore from Google Drive</button>
+            </div>
+            <p id="gdrive-status" class="status muted">Not connected.</p>
+          </div>
+
+          <div class="card">
+            <h2>Microsoft OneDrive API (alternative)</h2>
+            <p class="muted">Backs up directly to your own OneDrive, in an app-only folder, as <code id="ms-filename-example">liquid-ledger.json</code>. Works with personal Microsoft accounts, not just work/school ones.</p>
+            <p class="muted">In the Azure app registration, under "Redirect URIs" (platform: Single-page application) add exactly this (same on phone and computer):</p>
+            <p class="muted"><code id="ms-redirect-uri-hint">—</code></p>
+            <div class="field-row">
+              <label for="ms-client-id">Your Microsoft Application (client) ID</label>
+              <input type="text" id="ms-client-id" placeholder="paste from Azure Portal → App registrations">
+            </div>
+            <div class="actions">
+              <button id="btn-ms-connect">Connect OneDrive</button>
+              <button id="btn-ms-disconnect">Disconnect</button>
+            </div>
+            <div class="actions">
+              <button id="btn-ms-backup" class="primary">Back up now</button>
+              <button id="btn-ms-restore">Restore from OneDrive</button>
+            </div>
+            <p id="ms-status" class="status muted">Not connected.</p>
+          </div>
+
+          <div class="card">
+            <h2>Apple iCloud Drive</h2>
+            <p class="muted">
+              Apple doesn't offer a public API that a web app like this can use to
+              connect to iCloud Drive directly (unlike Dropbox, Google, and
+              Microsoft) — it requires a native app with special entitlements.
+              The good news: iCloud Drive already works through the
+              <strong>Local folder</strong> option above. On a Mac, just choose your
+              iCloud Drive folder there and it works exactly the same way.
+            </p>
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- ===================== SETTINGS TAB ===================== -->

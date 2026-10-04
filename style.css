@@ -135,7 +135,8 @@ a { color: var(--teal-deep); }
 }
 .brand-mark { flex: none; color: #ffffff; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
 .brand-mark-body { fill: currentColor; }
-.brand-mark-shine { stroke: var(--yellow); stroke-width: 1.6; fill: none; opacity: 0.9; }
+.brand-mark-shine { stroke: var(--yellow); stroke-width: 1.1; fill: none; }
+.brand-mark-cover { stroke: currentColor; stroke-width: 1; fill: none; }
 
 /* ---- Pool switcher (header) ---- */
 .pool-switcher-wrap {
@@ -301,7 +302,19 @@ main { max-width: 1100px; margin: 0 auto; padding: 20px; }
   box-shadow: 0 0 0 3px var(--teal-tint);
   outline: none;
 }
-.field-row input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--teal); }
+.field-row input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--teal); flex: none; }
+/* A 19px checkbox is far smaller than a comfortable touch target, and a
+   plain label+input pair only makes the LABEL TEXT and the checkbox itself
+   tappable — the gap between them (and any space the wrapped label text
+   doesn't fill) hits nothing at all. On a touchscreen that's an easy miss
+   that looks like "tapping does nothing." Making the whole row a <label>
+   (text + checkbox both inside it) means a tap anywhere in the row toggles
+   it, with a minimum height for a comfortable thumb target. */
+label.checkbox-row {
+  cursor: pointer;
+  min-height: 44px;
+}
+label.checkbox-row span { flex: 1 1 auto; }
 
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
 button {
@@ -403,6 +416,24 @@ button.danger:hover { filter: brightness(1.08); }
 }
 .advanced-disclosure summary:hover { color: var(--teal); }
 .advanced-disclosure > *:not(summary) { margin-top: 10px; }
+
+/* A clearly-separate, collapsed-by-default section for features still
+   being worked on (currently: direct cloud-account sync), so the page's
+   main/working options aren't cluttered or confused with the ones that
+   aren't reliable yet. */
+.comingsoon-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--line);
+}
+.comingsoon-section summary {
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.comingsoon-section summary:hover { color: var(--teal); }
+.comingsoon-intro { margin: 10px 0 16px; }
 
 .muted { color: var(--muted); font-size: 0.88rem; }
 .status { margin-top: 4px; }

@@ -3,6 +3,22 @@
  * settings, and backup buttons. Everything reads/writes through STORE.
  */
 
+// Last-resort diagnostic net: if ANYTHING throws an uncaught exception or
+// rejects a promise without being caught anywhere, show it instead of
+// letting it fail completely silently. This has been a real problem
+// diagnosing phone-only bugs: a script error partway through setup can
+// quietly break everything *after* it (e.g. some buttons stop responding)
+// with zero visible sign anything went wrong — the person just sees
+// "nothing happens" and there's no way to know why without a desktop
+// browser's console. Surfacing it as an alert() means even someone with no
+// technical background can read the exact error back to us.
+window.addEventListener('error', (e) => {
+  alert('Liquid Ledger hit an unexpected error and some things may not work right now. Please report this message:\n\n' + (e.error && e.error.message ? e.error.message : e.message));
+});
+window.addEventListener('unhandledrejection', (e) => {
+  alert('Liquid Ledger hit an unexpected error and some things may not work right now. Please report this message:\n\n' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+});
+
 (() => {
   let settings = STORE.getSettings();
   let logs = STORE.getLogs();
@@ -340,7 +356,7 @@
     // already does a full pull-merge-then-push cycle, so this is enough
     // to keep two devices in sync without the user doing anything extra.
     if (settings.dropbox.refreshToken && settings.dropbox.autoSave) {
-      dbxBackup();
+      dbxBackup({ silent: true });
     }
   }
 
@@ -1005,7 +1021,13 @@
     }
   }
 
-  async function dbxBackup() {
+  // opts.silent: used by auto-sync (after logging, and on app load) so it
+  // doesn't interrupt with a popup on every single entry. A manual tap on
+  // "Back up now" always gets a visible, impossible-to-miss alert() with
+  // the real outcome — success or the exact error — because the status
+  // line text alone has proven too easy to miss/scroll past to debug
+  // real-world failures on a phone.
+  async function dbxBackup(opts = {}) {
     try {
       const token = await DROPBOX.ensureValidToken(settings.dropbox, dbxAppKey());
       await mergeRemoteLogsBeforeBackup(() => DROPBOX.download(token), e => NOT_FOUND_RE.test(e.message));
@@ -1014,7 +1036,11 @@
       STORE.saveSettings(settings);
       updateBackupStatus();
       renderHistory();
-    } catch (e) { showBackupError('dbx-status', e); }
+      if (!opts.silent) alert('Backed up to Dropbox successfully at ' + formatDate(settings.lastBackup.dropbox) + '.');
+    } catch (e) {
+      showBackupError('dbx-status', e);
+      if (!opts.silent) alert('Dropbox backup failed: ' + e.message);
+    }
   }
 
   async function dbxRestore() {
@@ -1030,7 +1056,10 @@
       renderHistory();
       updateBackupStatus();
       alert('Restore complete.');
-    } catch (e) { showBackupError('dbx-status', e); }
+    } catch (e) {
+      showBackupError('dbx-status', e);
+      alert('Dropbox restore failed: ' + e.message);
+    }
   }
 
   function dbxDisconnect() {
@@ -1482,7 +1511,7 @@
 
     $('#btn-dbx-connect').addEventListener('click', dbxConnect);
     $('#btn-dbx-disconnect').addEventListener('click', dbxDisconnect);
-    $('#btn-dbx-backup').addEventListener('click', dbxBackup);
+    $('#btn-dbx-backup').addEventListener('click', () => dbxBackup());
     $('#btn-dbx-restore').addEventListener('click', dbxRestore);
     $('#dbx-autosave').addEventListener('change', () => {
       settings.dropbox.autoSave = $('#dbx-autosave').checked;
@@ -1526,7 +1555,7 @@
       // error in the Backup tab's status line, so there's nothing more to
       // do here on failure.
       if (settings.dropbox.refreshToken && settings.dropbox.autoSave) {
-        dbxBackup();
+        dbxBackup({ silent: true });
       }
     });
     msHandleRedirectIfAny();
