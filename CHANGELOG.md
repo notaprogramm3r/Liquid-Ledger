@@ -7,6 +7,22 @@ All notable changes to **Liquid Assets — Pool Edition** are listed here.
 Alpha 1.22 → ... → Alpha 1.30 → Alpha 1.31, etc.), replacing the earlier
 `MAJOR.MINOR.PATCH` scheme used through v1.8.0 below.
 
+## Alpha 1.43 — 2026-10-05
+
+- **"Which tests to track" is now in alphabetical order.**
+- **"Order of tests": your custom fields always stay at the bottom**, after
+  every built-in test (including in orders you saved earlier). The arrows
+  move tests around within their own group.
+- **Bigger, landscape pool photo on the New Entry screen.** New photos are
+  also saved at a higher resolution (720px) so they stay sharp at the larger
+  size; the Settings preview now shows the same landscape crop.
+- **Reorder your pools.** "Your pools" in Settings has up/down arrows; the
+  order carries through to the header dropdown and is kept in backup files.
+  (A full "Import backup file" restores the backup's order too; merging from
+  a cloud/folder backup keeps your own order.)
+- **The PDF export puts the pool's photo at the top of the first page**
+  (nothing is added if the pool has no photo).
+
 ## Alpha 1.42 — 2026-10-04
 
 - **New logo: a water droplet over an open book.** Replaces the plain

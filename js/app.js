@@ -123,6 +123,7 @@ window.addEventListener('unhandledrejection', (e) => {
   // Every field that can appear on the Log form, in a user-chosen order
   // (Settings → "Order of tests"). Defaults to FC/pH first, then the rest
   // of the chlorine family, then everything else — see storage.js.
+  const CUSTOM_KEYS = ['custom1', 'custom2'];
   const ALL_ORDERABLE_KEYS = ['fc', 'ph', 'tc', 'cc', 'br', 'orp', 'ta', 'ch', 'cya', 'salt', 'temp', 'custom1', 'custom2'];
 
   // Whether a key counts as "currently tracked" — enabled chemicals/extras
@@ -139,7 +140,10 @@ window.addEventListener('unhandledrejection', (e) => {
   function effectiveTestOrder() {
     const stored = Array.isArray(settings.testOrder) ? settings.testOrder.filter(k => ALL_ORDERABLE_KEYS.includes(k)) : [];
     const missing = ALL_ORDERABLE_KEYS.filter(k => !stored.includes(k));
-    return stored.concat(missing);
+    // The two user-named custom fields always sit after every built-in test,
+    // even in an order saved before this rule existed.
+    const all = stored.concat(missing);
+    return all.filter(k => !CUSTOM_KEYS.includes(k)).concat(all.filter(k => CUSTOM_KEYS.includes(k)));
   }
 
   // Every field currently tracked and given a target range, in the
@@ -639,8 +643,15 @@ window.addEventListener('unhandledrejection', (e) => {
       ? `${escapeHtml(settings.poolName)} — ${kindLabel} Test Report`
       : `Liquid Ledger — ${kindLabel} Test Report`;
 
+    // The pool's photo, if it has one, leads the first page. Only accept an
+    // actual image data URL (a backup file from elsewhere could hold anything).
+    const photoHtml = settings.photo && /^data:image\//.test(settings.photo)
+      ? `<img class="print-photo" src="${escapeHtml(settings.photo)}" alt="">`
+      : '';
+
     const report = $('#print-report');
     report.innerHTML = `
+      ${photoHtml}
       <h1>${titleText}</h1>
       <div class="print-meta">
         Date range: ${rangeLabel} &nbsp;•&nbsp; ${filtered.length} ${filtered.length === 1 ? 'entry' : 'entries'}
@@ -654,7 +665,11 @@ window.addEventListener('unhandledrejection', (e) => {
     document.title = settings.poolName ? `${settings.poolName} — Pool Report` : 'Liquid Ledger Report';
     const restoreTitle = () => { document.title = prevTitle; window.removeEventListener('afterprint', restoreTitle); };
     window.addEventListener('afterprint', restoreTitle);
-    window.print();
+    // Make sure the photo has finished decoding before the print dialog
+    // snapshots the page, or it can come out blank.
+    const photoEl = report.querySelector('.print-photo');
+    const ready = photoEl && photoEl.decode ? photoEl.decode().catch(() => {}) : Promise.resolve();
+    ready.then(() => window.print());
   }
 
   // ---------------- Settings ----------------
@@ -663,7 +678,10 @@ window.addEventListener('unhandledrejection', (e) => {
   const TOGGLEABLE_CHEMS = ['ta', 'ch', 'cya', 'ph', 'fc'].concat(EXTRA_LOG_FIELDS);
 
   function renderEnabledChemsCheckboxes() {
-    $('#enabled-chems').innerHTML = TOGGLEABLE_CHEMS.map(k => {
+    // Alphabetical by the label the person actually sees (case-insensitive).
+    const alphabetical = TOGGLEABLE_CHEMS.slice().sort((a, b) =>
+      CHEM_LABELS[a].localeCompare(CHEM_LABELS[b], undefined, { sensitivity: 'base' }));
+    $('#enabled-chems').innerHTML = alphabetical.map(k => {
       const indoorLockedCya = k === 'cya' && settings.environment === 'indoor';
       const note = indoorLockedCya ? ' <span class="muted">(off — indoor pool)</span>' : '';
       return `<label><input type="checkbox" class="enabled-chem" value="${k}" ${isFieldEnabled(k) ? 'checked' : ''} ${indoorLockedCya ? 'disabled' : ''}> ${CHEM_LABELS[k]}${note}</label>`;
@@ -804,7 +822,7 @@ window.addEventListener('unhandledrejection', (e) => {
   function renderPoolList() {
     const activeId = STORE.getActivePoolId();
     const pools = STORE.listPools();
-    $('#pool-list').innerHTML = pools.map(p => `
+    $('#pool-list').innerHTML = pools.map((p, i) => `
       <div class="pool-list-item ${p.id === activeId ? 'active' : ''}">
         ${p.photo ? `<img class="pool-thumb-lg" src="${p.photo}" alt="">` : `<div class="pool-thumb-placeholder">💧</div>`}
         <div>
@@ -812,12 +830,21 @@ window.addEventListener('unhandledrejection', (e) => {
           <div class="pool-list-meta">${p.poolType === 'spa' ? 'Spa' : 'Pool'} · ${p.environment === 'indoor' ? 'Indoor' : 'Outdoor'}</div>
         </div>
         <div class="actions">
+          <button type="button" class="btn-pool-up" data-id="${p.id}" ${i === 0 ? 'disabled' : ''} aria-label="Move pool up">↑</button>
+          <button type="button" class="btn-pool-down" data-id="${p.id}" ${i === pools.length - 1 ? 'disabled' : ''} aria-label="Move pool down">↓</button>
           ${p.id !== activeId ? `<button type="button" class="btn-pool-switch" data-id="${p.id}">Switch to</button>` : ''}
           <button type="button" class="btn-pool-delete" data-id="${p.id}" ${pools.length <= 1 ? 'disabled title="At least one pool is required"' : ''}>Delete</button>
         </div>
       </div>
     `).join('');
 
+    const movePool = (id, dir) => {
+      STORE.movePool(id, dir);
+      renderPoolList();
+      renderPoolSwitcher();
+    };
+    $all('.btn-pool-up').forEach(b => b.addEventListener('click', () => movePool(b.dataset.id, -1)));
+    $all('.btn-pool-down').forEach(b => b.addEventListener('click', () => movePool(b.dataset.id, 1)));
     $all('.btn-pool-switch').forEach(b => b.addEventListener('click', () => {
       STORE.setActivePool(b.dataset.id);
       loadActivePool();
@@ -895,15 +922,16 @@ window.addEventListener('unhandledrejection', (e) => {
       : `<div class="photo-preview-placeholder">💧</div>`;
   }
 
-  // Resizes/compresses the chosen image client-side (max 480px on the long
-  // edge, JPEG ~75% quality) before storing it as a data URL in settings —
+  // Resizes/compresses the chosen image client-side (max 720px on the long
+  // edge, JPEG ~75% quality; the original shape is kept — it's shown as a
+  // landscape crop on the New Entry screen and the PDF) before storing it as a data URL in settings —
   // keeps localStorage usage reasonable even with several photographed pools.
   function handlePhotoFile(file) {
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const maxDim = 480;
+        const maxDim = 720;
         let { width, height } = img;
         if (width > maxDim || height > maxDim) {
           if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
@@ -944,8 +972,8 @@ window.addEventListener('unhandledrejection', (e) => {
       <div class="order-list-item">
         <span class="order-list-name">${fieldLabel(k)}${isKeyTracked(k) ? '' : ' <span class="muted">(not tracked)</span>'}</span>
         <div class="actions">
-          <button type="button" class="btn-order-up" data-key="${k}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">↑</button>
-          <button type="button" class="btn-order-down" data-key="${k}" ${i === order.length - 1 ? 'disabled' : ''} aria-label="Move down">↓</button>
+          <button type="button" class="btn-order-up" data-key="${k}" ${canMoveTest(order, k, -1) ? '' : 'disabled'} aria-label="Move up">↑</button>
+          <button type="button" class="btn-order-down" data-key="${k}" ${canMoveTest(order, k, 1) ? '' : 'disabled'} aria-label="Move down">↓</button>
         </div>
       </div>
     `).join('');
@@ -954,11 +982,18 @@ window.addEventListener('unhandledrejection', (e) => {
     $all('.btn-order-down').forEach(b => b.addEventListener('click', () => moveTestOrder(b.dataset.key, 1)));
   }
 
+  // Custom fields stay in their own group at the bottom: a test can only
+  // swap places with a neighbor of the same kind (built-in vs. custom).
+  function canMoveTest(order, key, dir) {
+    const neighbor = order[order.indexOf(key) + dir];
+    return neighbor !== undefined && CUSTOM_KEYS.includes(neighbor) === CUSTOM_KEYS.includes(key);
+  }
+
   function moveTestOrder(key, dir) {
     const order = effectiveTestOrder();
+    if (!canMoveTest(order, key, dir)) return;
     const idx = order.indexOf(key);
     const newIdx = idx + dir;
-    if (newIdx < 0 || newIdx >= order.length) return;
     [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
     settings.testOrder = order;
     applyFieldOrder();

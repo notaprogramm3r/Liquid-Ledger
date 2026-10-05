@@ -124,6 +124,18 @@ const STORE = (() => {
     });
   }
 
+  // Moves a pool one place up (dir -1) or down (dir +1) in the saved order,
+  // which drives both the Settings list and the header dropdown.
+  function movePool(id, dir) {
+    ensureMigrated();
+    const ids = readPoolIds();
+    const i = ids.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= ids.length) return;
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+    writePoolIds(ids);
+  }
+
   // Creates a new, empty pool and returns its id. Does not switch to it.
   function addPool(name) {
     ensureMigrated();
@@ -304,6 +316,12 @@ const STORE = (() => {
       originalIds.forEach(id => {
         if (!importedIds.has(id)) deletePool(id);
       });
+      // A full restore also restores the backup's pool order.
+      const present = new Set(readPoolIds());
+      const backupOrder = poolsData.map(p => p && p.id).filter(id => id && present.has(id));
+      const unique = backupOrder.filter((id, i) => backupOrder.indexOf(id) === i);
+      const rest = readPoolIds().filter(id => !unique.includes(id));
+      writePoolIds(unique.concat(rest));
     }
   }
 
@@ -342,6 +360,6 @@ const STORE = (() => {
     getSettings, saveSettings,
     getLogs, saveLogs, addLog, mergeLogs,
     exportAll, importAll, mergeRemoteBackup,
-    listPools, addPool, deletePool, setActivePool, getActivePoolId
+    listPools, addPool, movePool, deletePool, setActivePool, getActivePoolId
   };
 })();
